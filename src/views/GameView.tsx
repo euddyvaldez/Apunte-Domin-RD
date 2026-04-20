@@ -27,6 +27,8 @@ import {
 } from 'lucide-react';
 import { calculateRoundPoints } from '../store';
 import { PlayType } from '../types';
+// @ts-ignore
+import anuncioImg from '../assets/Anuncio1.png';
 
 const PLAY_ABBR: Record<string, string> = {
   'Dominó': 'DOM',
@@ -405,7 +407,7 @@ export default function GameView({ navigate, store }: any) {
                 onClick={() => window.open('https://ais-dev-l3dac2ls5evpj6bfb7thz6-401655172120.us-west2.run.app', '_blank')}
               >
                 <img 
-                  src="/Anuncio1.png" 
+                  src={anuncioImg} 
                   alt="Anuncio Dominó RD"
                   className="w-full h-full object-contain bg-black"
                   style={{ imageRendering: 'auto' }}
