@@ -39,6 +39,7 @@ const PLAY_ABBR: Record<string, string> = {
 export default function GameView({ navigate, store }: any) {
   const match = store.currentMatch;
   const [showAddPoints, setShowAddPoints] = useState(false);
+  const [initialTeamForModal, setInitialTeamForModal] = useState<0 | 1>(0);
   const [showOptions, setShowOptions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -62,12 +63,20 @@ export default function GameView({ navigate, store }: any) {
           limit={match.scoreLimit} 
           primary 
           winner={match.winnerTeamId === match.teams[0].id}
+          onAdd={() => {
+            setInitialTeamForModal(0);
+            setShowAddPoints(true);
+          }}
         />
         <ScoreCard 
           name={match.teams[1].name} 
           score={scoreT2} 
           limit={match.scoreLimit} 
           winner={match.winnerTeamId === match.teams[1].id}
+          onAdd={() => {
+            setInitialTeamForModal(1);
+            setShowAddPoints(true);
+          }}
         />
         
         {!isFinished && (
@@ -275,6 +284,7 @@ export default function GameView({ navigate, store }: any) {
           <AddPointsModal 
             onClose={() => setShowAddPoints(false)} 
             match={match} 
+            initialTeamIndex={initialTeamForModal}
             onAdd={(roundData: any) => {
               store.addRound(match.id, roundData);
               setShowAddPoints(false);
@@ -286,7 +296,7 @@ export default function GameView({ navigate, store }: any) {
   );
 }
 
-function ScoreCard({ name, score, limit, primary, winner }: any) {
+function ScoreCard({ name, score, limit, primary, winner, onAdd }: any) {
   const percentage = Math.min((score / limit) * 100, 100);
   
   return (
@@ -296,9 +306,24 @@ function ScoreCard({ name, score, limit, primary, winner }: any) {
       'bg-bg-card border-border-theme'
     }`}>
       <div className="relative z-10 flex flex-col items-center">
-        <span className={`text-[10px] uppercase tracking-widest font-bold mb-1 ${winner ? 'text-white/60' : 'text-text-dim'}`}>
-          {name}
-        </span>
+        <div className="flex items-center gap-2 mb-1">
+          <span className={`text-[10px] uppercase tracking-widest font-bold ${winner ? 'text-white/60' : 'text-text-dim'}`}>
+            {name}
+          </span>
+          {!winner && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onAdd();
+              }}
+              className={`p-1 rounded-full transition-all ${
+                primary ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-secondary/10 text-secondary hover:bg-secondary/20'
+              }`}
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+          )}
+        </div>
         <span className={`text-4xl font-display font-black ${winner ? 'text-white' : 'text-text-main'}`}>
           {score}
         </span>
@@ -333,8 +358,8 @@ function RoundEntry({ round, color }: any) {
   );
 }
 
-function AddPointsModal({ onClose, match, onAdd }: any) {
-  const [teamIndex, setTeamIndex] = useState<0 | 1>(0);
+function AddPointsModal({ onClose, match, onAdd, initialTeamIndex = 0 }: any) {
+  const [teamIndex, setTeamIndex] = useState<0 | 1>(initialTeamIndex);
   const [points, setPoints] = useState<string>('');
   const [playType, setPlayType] = useState<PlayType>('Dominó');
 
