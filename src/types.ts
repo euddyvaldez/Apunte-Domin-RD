@@ -26,6 +26,8 @@ export interface Round {
   winningTeamIndex: 0 | 1; // Index 0 for Team 1, 1 for Team 2
   closerPlayerId?: string;
   timestamp: number;
+  isEdited?: boolean;
+  isDeleted?: boolean;
 }
 
 export interface Match {

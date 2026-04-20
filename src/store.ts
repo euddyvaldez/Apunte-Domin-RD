@@ -78,6 +78,29 @@ export function useStore() {
     return newMatch;
   };
 
+  const recalculateMatch = (match: Match): Match => {
+    const activeRounds = match.rounds.filter(r => !r.isDeleted);
+    const scoreT1 = activeRounds.reduce((acc, r) => acc + (r.winningTeamIndex === 0 ? r.pointsTeam1 : 0), 0);
+    const scoreT2 = activeRounds.reduce((acc, r) => acc + (r.winningTeamIndex === 1 ? r.pointsTeam2 : 0), 0);
+
+    let status: 'active' | 'finished' = 'active';
+    let winnerId: string | undefined = undefined;
+
+    if (scoreT1 >= match.scoreLimit) {
+      status = 'finished';
+      winnerId = match.teams[0].id;
+    } else if (scoreT2 >= match.scoreLimit) {
+      status = 'finished';
+      winnerId = match.teams[1].id;
+    }
+
+    return {
+      ...match,
+      status,
+      winnerTeamId: winnerId,
+    };
+  };
+
   const addRound = (matchId: string, roundData: Omit<Round, 'id' | 'timestamp' | 'number' | 'matchId'>) => {
     setData(prev => {
       const matchIndex = prev.matches.findIndex(m => m.id === matchId);
@@ -92,29 +115,65 @@ export function useStore() {
         timestamp: Date.now(),
       };
 
-      const updatedRounds = [...match.rounds, newRound];
-      
-      // Calculate totals
-      const scoreT1 = updatedRounds.reduce((acc, r) => acc + (r.winningTeamIndex === 0 ? r.pointsTeam1 : 0), 0);
-      const scoreT2 = updatedRounds.reduce((acc, r) => acc + (r.winningTeamIndex === 1 ? r.pointsTeam2 : 0), 0);
+      const updatedMatch = recalculateMatch({
+        ...match,
+        rounds: [...match.rounds, newRound],
+      });
 
-      let status = match.status;
-      let winnerId = match.winnerTeamId;
+      const updatedMatches = [...prev.matches];
+      updatedMatches[matchIndex] = updatedMatch;
 
-      if (scoreT1 >= match.scoreLimit) {
-        status = 'finished';
-        winnerId = match.teams[0].id;
-      } else if (scoreT2 >= match.scoreLimit) {
-        status = 'finished';
-        winnerId = match.teams[1].id;
-      }
+      return { ...prev, matches: updatedMatches };
+    });
+  };
 
-      const updatedMatch: Match = {
+  const updateRound = (matchId: string, roundId: string, roundData: Partial<Round>) => {
+    setData(prev => {
+      const matchIndex = prev.matches.findIndex(m => m.id === matchId);
+      if (matchIndex === -1) return prev;
+
+      const match = prev.matches[matchIndex];
+      const roundIndex = match.rounds.findIndex(r => r.id === roundId);
+      if (roundIndex === -1) return prev;
+
+      const updatedRounds = [...match.rounds];
+      updatedRounds[roundIndex] = { 
+        ...updatedRounds[roundIndex], 
+        ...roundData,
+        isEdited: true 
+      };
+
+      const updatedMatch = recalculateMatch({
         ...match,
         rounds: updatedRounds,
-        status,
-        winnerTeamId: winnerId,
+      });
+
+      const updatedMatches = [...prev.matches];
+      updatedMatches[matchIndex] = updatedMatch;
+
+      return { ...prev, matches: updatedMatches };
+    });
+  };
+
+  const deleteRound = (matchId: string, roundId: string) => {
+    setData(prev => {
+      const matchIndex = prev.matches.findIndex(m => m.id === matchId);
+      if (matchIndex === -1) return prev;
+
+      const match = prev.matches[matchIndex];
+      const roundIndex = match.rounds.findIndex(r => r.id === roundId);
+      if (roundIndex === -1) return prev;
+
+      const updatedRounds = [...match.rounds];
+      updatedRounds[roundIndex] = { 
+        ...updatedRounds[roundIndex], 
+        isDeleted: true 
       };
+
+      const updatedMatch = recalculateMatch({
+        ...match,
+        rounds: updatedRounds,
+      });
 
       const updatedMatches = [...prev.matches];
       updatedMatches[matchIndex] = updatedMatch;
@@ -140,6 +199,8 @@ export function useStore() {
     toggleDarkMode,
     startNewMatch,
     addRound,
+    updateRound,
+    deleteRound,
     deleteMatch,
     setCurrentMatch: (id: string | null) => setData(prev => ({ ...prev, currentMatchId: id })),
   };
