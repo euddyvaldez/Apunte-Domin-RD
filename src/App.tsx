@@ -209,10 +209,23 @@ function NavButton({ active, onClick, icon, label }: { active: boolean, onClick:
   return (
     <button 
       onClick={onClick}
-      className={`flex flex-col items-center gap-1 transition-all ${active ? 'text-primary scale-110' : 'text-text-dim opacity-60'}`}
+      className={`flex flex-col items-center gap-1.5 transition-all relative ${active ? 'text-primary' : 'text-text-main'}`}
     >
-      <span className="w-6 h-6">{icon}</span>
-      <span className="text-[10px] font-medium uppercase tracking-wider">{label}</span>
+      <motion.span 
+        animate={active ? { scale: 1.2, y: -2 } : { scale: 1, y: 0 }}
+        className={`w-7 h-7 flex items-center justify-center ${active ? 'drop-shadow-sm' : 'opacity-70'}`}
+      >
+        {icon}
+      </motion.span>
+      <span className={`text-[10px] font-black uppercase tracking-widest ${active ? 'opacity-100' : 'opacity-60'}`}>
+        {label}
+      </span>
+      {active && (
+        <motion.div 
+          layoutId="nav-indicator"
+          className="absolute -bottom-1 w-1 h-1 bg-primary rounded-full"
+        />
+      )}
     </button>
   );
 }

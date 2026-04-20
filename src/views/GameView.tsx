@@ -79,12 +79,18 @@ export default function GameView({ navigate, store }: any) {
     <div className="flex flex-col h-full bg-bg-page select-none">
       {/* Scoreboard */}
       <div className="p-4 grid grid-cols-2 gap-4 sticky top-0 bg-bg-page/80 backdrop-blur-md z-40 border-b border-border-theme">
+        <div className="col-span-2 flex justify-center mb-1">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-dim/60 bg-text-main/5 px-3 py-1 rounded-full border border-border-theme/50">
+            Meta: {match.scoreLimit} Puntos
+          </span>
+        </div>
         <ScoreCard 
           name={match.teams[0].name} 
           score={scoreT1} 
           limit={match.scoreLimit} 
           primary 
           winner={match.winnerTeamId === match.teams[0].id}
+          isFinished={isFinished}
           onAdd={() => {
             setInitialTeamForModal(0);
             setShowAddPoints(true);
@@ -95,6 +101,7 @@ export default function GameView({ navigate, store }: any) {
           score={scoreT2} 
           limit={match.scoreLimit} 
           winner={match.winnerTeamId === match.teams[1].id}
+          isFinished={isFinished}
           onAdd={() => {
             setInitialTeamForModal(1);
             setShowAddPoints(true);
@@ -153,8 +160,8 @@ export default function GameView({ navigate, store }: any) {
       <div className="flex-1 p-4 overflow-y-auto">
         {match.rounds.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-text-dim/30 italic">
-            <Plus className="w-12 h-12 mb-2" />
-            <p>Presiona + para anotar puntos</p>
+            <Zap className="w-12 h-12 mb-2" />
+            <p>Toca un equipo para anotar puntos</p>
           </div>
         ) : (
           <div className="flex gap-4 min-h-full">
@@ -279,26 +286,20 @@ export default function GameView({ navigate, store }: any) {
 
       {/* Action Buttons */}
       {!isFinished && (
-        <div className="fixed bottom-20 left-0 right-0 flex items-center justify-center gap-6 pointer-events-none">
+        <div className="fixed bottom-24 left-0 right-0 flex items-center justify-center pointer-events-none">
           <motion.button 
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowHistory(true)}
-            className="w-12 h-12 bg-bg-card border border-border-theme text-text-dim rounded-full shadow-lg flex items-center justify-center pointer-events-auto"
+            className="group flex flex-col items-center gap-1 pointer-events-auto opacity-75"
           >
-            <HistoryIcon className="w-5 h-5" />
+            <div className="w-12 h-12 bg-primary text-white rounded-full shadow-xl flex items-center justify-center border-4 border-bg-page hover:bg-primary/90 transition-all">
+              <HistoryIcon className="w-6 h-6" />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-widest text-primary drop-shadow-sm bg-bg-page/80 px-2 py-0.5 rounded-full">
+              Bitácora
+            </span>
           </motion.button>
-          
-          <motion.button 
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowAddPoints(true)}
-            className="w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center border-4 border-bg-page outline-none pointer-events-auto"
-          >
-            <Plus className="w-8 h-8" />
-          </motion.button>
-
-          <div className="w-12 h-12" /> {/* Spacer */}
         </div>
       )}
 
@@ -438,32 +439,28 @@ export default function GameView({ navigate, store }: any) {
   );
 }
 
-function ScoreCard({ name, score, limit, primary, winner, onAdd }: any) {
+function ScoreCard({ name, score, limit, winner, onAdd, isFinished }: any) {
   const percentage = Math.min((score / limit) * 100, 100);
   
   return (
-    <div className={`relative p-5 rounded-3xl overflow-hidden transition-all duration-500 border-2 ${
-      winner ? 'bg-primary border-primary shadow-lg scale-105' : 
-      percentage > 90 ? 'bg-accent/10 border-accent/50' : 
-      'bg-bg-card border-border-theme'
-    }`}>
+    <motion.div 
+      whileTap={!isFinished ? { scale: 0.95 } : {}}
+      onClick={() => !isFinished && onAdd()}
+      className={`relative p-5 rounded-3xl overflow-hidden transition-all duration-300 border-2 cursor-pointer ${
+        winner ? 'bg-primary border-primary shadow-lg scale-105' : 
+        percentage > 90 ? 'bg-accent/10 border-accent/50' : 
+        'bg-bg-card border-border-theme hover:border-primary/50'
+      }`}
+    >
       <div className="relative z-10 flex flex-col items-center">
         <div className="flex items-center gap-2 mb-1">
           <span className={`text-[10px] uppercase tracking-widest font-bold ${winner ? 'text-white/60' : 'text-text-dim'}`}>
             {name}
           </span>
-          {!winner && (
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onAdd();
-              }}
-              className={`p-1 rounded-full transition-all ${
-                primary ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-secondary/10 text-secondary hover:bg-secondary/20'
-              }`}
-            >
+          {!winner && !isFinished && (
+            <div className={`p-1 rounded-full transition-all bg-primary/10 text-primary`}>
               <Plus className="w-3 h-3" />
-            </button>
+            </div>
           )}
         </div>
         <span className={`text-4xl font-display font-black ${winner ? 'text-white' : 'text-text-main'}`}>
@@ -478,7 +475,7 @@ function ScoreCard({ name, score, limit, primary, winner, onAdd }: any) {
         </div>
       </div>
       {winner && <Trophy className="absolute top-2 right-2 w-4 h-4 text-white/40" />}
-    </div>
+    </motion.div>
   );
 }
 
