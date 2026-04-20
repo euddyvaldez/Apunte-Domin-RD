@@ -27,8 +27,6 @@ import {
 } from 'lucide-react';
 import { calculateRoundPoints } from '../store';
 import { PlayType } from '../types';
-// @ts-ignore
-import anuncioImg from '../assets/Anuncio1.png';
 
 const PLAY_ABBR: Record<string, string> = {
   'Dominó': 'DOM',
@@ -407,13 +405,14 @@ export default function GameView({ navigate, store }: any) {
                 onClick={() => window.open('https://ais-dev-l3dac2ls5evpj6bfb7thz6-401655172120.us-west2.run.app', '_blank')}
               >
                 <img 
-                  src={anuncioImg} 
+                  src="https://i.postimg.cc/D0ch59t6/Anuncio1.png" 
                   alt="Anuncio Dominó RD"
                   className="w-full h-full object-contain bg-black"
                   style={{ imageRendering: 'auto' }}
+                  referrerPolicy="no-referrer"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    // Respaldo por si hay algún problema con la imagen local
+                    // Respaldo por si hay algún problema con la imagen externa principal
                     if (!target.src.includes('squarespace')) {
                       target.src = 'https://images.squarespace-cdn.com/content/v1/5e73ef59d186f916847d06d4/1585671510255-YI0N0K2K2H1K2G1G1G1G/Domino+RD+Ad.jpg';
                     }
