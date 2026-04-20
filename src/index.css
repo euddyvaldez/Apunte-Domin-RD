@@ -82,14 +82,14 @@
   }
 
   .dark {
-    --primary: #f4f4f5;
-    --secondary: #a1a1aa;
-    --accent: #22c55e;
-    --bg-page: #09090b;
-    --bg-card: #18181b;
-    --text-main: #fafafa;
-    --text-dim: #a1a1aa;
-    --border-theme: #27272a;
+    --primary: #3b82f6 !important;    /* Azul royal vibrante */
+    --secondary: #6366f1 !important;  /* Indigo para acentos */
+    --accent: #10b981 !important;     /* Esmeralda para victorias */
+    --bg-page: #000000 !important;    /* Negro OLED real */
+    --bg-card: #0a0a0a !important;    /* Casi negro para capas */
+    --text-main: #ffffff !important;
+    --text-dim: #94a3b8 !important;
+    --border-theme: #1a1a1a !important;
     color-scheme: dark;
   }
 }

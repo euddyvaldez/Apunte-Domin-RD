@@ -1,4 +1,4 @@
-import { useState, ReactNode } from 'react';
+import { useState, ReactNode, useEffect } from 'react';
 import { useStore } from './store';
 import { AnimatePresence, motion } from 'motion/react';
 import { 
@@ -19,6 +19,14 @@ export default function App() {
   const store = useStore();
   const [view, setView] = useState<'home' | 'setup' | 'game' | 'history'>('home');
 
+  useEffect(() => {
+    if (store.isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [store.isDarkMode]);
+
   if (!store) {
     return <div className="flex items-center justify-center h-screen">Cargando aplicación...</div>;
   }
@@ -27,7 +35,7 @@ export default function App() {
   const navigate = (newView: 'home' | 'setup' | 'game' | 'history') => setView(newView);
 
   return (
-    <div className={`min-h-screen transition-all duration-500 theme-${store.theme} ${store.isDarkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen transition-all duration-500 theme-${store.theme}`}>
       <div className="max-w-md mx-auto min-h-screen flex flex-col bg-bg-page shadow-xl overflow-hidden relative border-x border-border-theme">
         
         {/* Header */}

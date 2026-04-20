@@ -17,7 +17,7 @@ export default function HomeView({ navigate, store }: any) {
         <motion.div 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="inline-block p-4 bg-primary text-white rounded-3xl shadow-lg mb-4"
+          className="inline-block p-5 bg-primary/10 text-primary dark:bg-primary dark:text-white rounded-[2.5rem] shadow-xl mb-4 border border-primary/20 dark:border-transparent"
         >
           <Dices className="w-12 h-12" />
         </motion.div>
