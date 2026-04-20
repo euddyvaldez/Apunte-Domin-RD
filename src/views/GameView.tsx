@@ -16,7 +16,13 @@ import {
   Trophy,
   History as HistoryIcon,
   LogOut,
-  Flag
+  Flag,
+  Zap,
+  Target,
+  Hash,
+  Star,
+  Shield,
+  Circle
 } from 'lucide-react';
 import { calculateRoundPoints } from '../store';
 import { PlayType } from '../types';
@@ -332,7 +338,14 @@ function AddPointsModal({ onClose, match, onAdd }: any) {
   const [points, setPoints] = useState<string>('');
   const [playType, setPlayType] = useState<PlayType>('Dominó');
 
-  const types: PlayType[] = ['Dominó', 'Capicúa', 'Tranque', 'Paso de salida', 'Pase Corrido', 'Otro'];
+  const types: { name: PlayType, icon: React.ReactNode }[] = [
+    { name: 'Dominó', icon: <Zap className="w-3 h-3" /> },
+    { name: 'Capicúa', icon: <Star className="w-3 h-3" /> },
+    { name: 'Tranque', icon: <Shield className="w-3 h-3" /> },
+    { name: 'Paso de salida', icon: <Target className="w-3 h-3" /> },
+    { name: 'Pase Corrido', icon: <Hash className="w-3 h-3" /> },
+    { name: 'Otro', icon: <Circle className="w-3 h-3" /> }
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -360,29 +373,29 @@ function AddPointsModal({ onClose, match, onAdd }: any) {
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className="relative w-full max-w-md bg-bg-page rounded-t-[2.5rem] sm:rounded-3xl p-6 shadow-2xl space-y-6"
+        className="relative w-full max-w-md bg-bg-page rounded-t-[2rem] sm:rounded-3xl p-5 shadow-2xl space-y-4"
       >
-        <div className="w-12 h-1.5 bg-border-theme rounded-full mx-auto" />
+        <div className="w-10 h-1 bg-border-theme/50 rounded-full mx-auto" />
         
         <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-display font-bold">Anotar Puntos</h3>
-          <button onClick={onClose} className="p-2 hover:bg-text-main/5 rounded-full"><X /></button>
+          <h3 className="text-xl font-display font-bold text-text-main">Anotar Puntos</h3>
+          <button onClick={onClose} className="p-2 hover:bg-text-main/5 rounded-full text-text-dim"><X className="w-5 h-5" /></button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 pb-2">
           {/* Selector de Equipo */}
           <div className="space-y-2">
-            <span className="text-xs font-bold text-text-dim uppercase tracking-widest pl-2">¿Quién ganó la mano?</span>
+            <span className="text-[10px] font-black text-text-dim/60 uppercase tracking-widest pl-1">¿Ganador de mano?</span>
             <div className="flex gap-2">
               {match.teams.map((t: any, idx: number) => (
                 <button
                   key={t.id}
                   type="button"
                   onClick={() => setTeamIndex(idx as 0 | 1)}
-                  className={`flex-1 py-4 rounded-2xl border-2 transition-all font-bold ${
+                  className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all font-bold text-sm ${
                     teamIndex === idx 
                       ? idx === 0 ? 'border-primary bg-primary/10 text-primary' : 'border-secondary bg-secondary/10 text-secondary'
-                      : 'border-transparent bg-primary/5 text-text-dim'
+                      : 'border-transparent bg-bg-card text-text-dim opacity-60'
                   }`}
                 >
                   {t.name}
@@ -391,30 +404,31 @@ function AddPointsModal({ onClose, match, onAdd }: any) {
             </div>
           </div>
 
-          {/* Selector de Tipo de Jugada */}
+          {/* Selector de Tipo de Jugada - Grid View with Icons */}
           <div className="space-y-2">
-            <span className="text-xs font-bold text-text-dim uppercase tracking-widest pl-2">Tipo de jugada</span>
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <span className="text-[10px] font-black text-text-dim/60 uppercase tracking-widest pl-1">Jugada</span>
+            <div className="grid grid-cols-3 gap-2">
               {types.map(t => (
                 <button
-                  key={t}
+                  key={t.name}
                   type="button"
-                  onClick={() => setPlayType(t)}
-                  className={`whitespace-nowrap px-4 py-2 rounded-full border transition-all text-sm font-bold ${
-                    playType === t 
-                      ? 'border-primary bg-primary text-white' 
-                      : 'border-border-theme bg-bg-card text-text-dim'
+                  onClick={() => setPlayType(t.name)}
+                  className={`py-2 px-1 rounded-xl border transition-all text-[11px] font-bold text-center flex flex-col items-center gap-1 ${
+                    playType === t.name 
+                      ? 'border-primary bg-primary text-white shadow-md' 
+                      : 'border-border-theme bg-bg-card text-text-dim hover:border-primary/30'
                   }`}
                 >
-                  {t}
+                  {t.icon}
+                  {t.name}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Input de Puntos */}
+          {/* Input de Puntos - Optimized Size */}
           <div className="space-y-2">
-            <span className="text-xs font-bold text-text-dim uppercase tracking-widest pl-2">Puntos sumados</span>
+            <span className="text-[10px] font-black text-text-dim/60 uppercase tracking-widest pl-1">Puntos brutos</span>
             <div className="relative">
               <input 
                 type="number" 
@@ -422,7 +436,7 @@ function AddPointsModal({ onClose, match, onAdd }: any) {
                 autoFocus
                 value={points}
                 onChange={e => setPoints(e.target.value)}
-                className="w-full bg-bg-card border-2 border-border-theme rounded-2xl p-6 text-4xl font-display font-black text-center focus:border-primary focus:ring-0 transition-all"
+                className="w-full bg-bg-card border-border-theme rounded-2xl p-4 text-3xl font-display font-black text-center focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
                 placeholder="0"
               />
             </div>
@@ -430,9 +444,9 @@ function AddPointsModal({ onClose, match, onAdd }: any) {
 
           <button 
             type="submit"
-            className="w-full bg-primary text-white p-5 rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-all"
+            className="w-full bg-primary text-white p-4 rounded-2xl font-bold text-base shadow-lg shadow-primary/20 active:scale-[0.98] transition-all mt-2"
           >
-            Confirmar Anotación
+            Confirmar Mano
           </button>
         </form>
       </motion.div>

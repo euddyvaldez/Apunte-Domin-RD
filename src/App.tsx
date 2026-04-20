@@ -46,7 +46,7 @@ export default function App() {
               </button>
             )}
             <h1 className="font-display font-bold text-xl tracking-tight">
-              Dominó <span className="text-primary italic">RD</span>
+              Apuntes de Dominó <span className="text-primary italic">RD</span>
             </h1>
           </div>
           
