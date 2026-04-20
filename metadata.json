@@ -1,6 +1,6 @@
 {
   "name": "Apuntes de Dominó RD",
-  "description": "Aplicación profesional para anotar partidas de dominó dominicano con soporte para 7 fichas, múltiples temas y registro histórico.",
+  "description": "Herramienta definitiva para anotar partidas de dominó al estilo dominicano. Soporta bitácora detallada, temas personalizables y registro histórico.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }
