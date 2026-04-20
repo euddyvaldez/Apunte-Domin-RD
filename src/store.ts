@@ -24,27 +24,51 @@ const DEFAULT_DATA: AppData = {
   currentMatchId: null,
 };
 
+// Polyfill/Fallback for crypto.randomUUID if not available (non-HTTPS or old browsers)
+export const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
 export function useStore() {
   const [data, setData] = useState<AppData>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : DEFAULT_DATA;
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return DEFAULT_DATA;
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return DEFAULT_DATA;
+      const parsed = JSON.parse(saved);
+      // Basic validation to ensure we have the right structure
+      if (!parsed || typeof parsed !== 'object') return DEFAULT_DATA;
+      return { ...DEFAULT_DATA, ...parsed };
+    } catch (e) {
+      console.error('Error loading data from localStorage:', e);
+      return DEFAULT_DATA;
+    }
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+    } catch (e) {
+      console.error('Error saving data to localStorage:', e);
+    }
   }, [data]);
 
   const setTheme = (theme: ThemeType) => setData(prev => ({ ...prev, theme }));
 
   const addPlayer = (name: string) => {
-    const newPlayer: Player = { id: crypto.randomUUID(), name };
+    const newPlayer: Player = { id: generateUUID(), name };
     setData(prev => ({ ...prev, players: [newPlayer, ...prev.players] }));
     return newPlayer;
   };
 
   const startNewMatch = (teams: Team[], scoreLimit: number = 100) => {
     const newMatch: Match = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       date: Date.now(),
       teams,
       rounds: [],
@@ -67,7 +91,7 @@ export function useStore() {
       const match = prev.matches[matchIndex];
       const newRound: Round = {
         ...roundData,
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         matchId,
         number: match.rounds.length + 1,
         timestamp: Date.now(),

@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
+import { generateUUID } from '../store';
 import { Users, Target, CheckCircle, ChevronRight } from 'lucide-react';
 
 export default function SetupView({ navigate, store }: any) {
@@ -20,19 +21,19 @@ export default function SetupView({ navigate, store }: any) {
 
   const handleStart = () => {
     const team1 = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       name: team1Name,
       players: [
-        { id: crypto.randomUUID(), name: team1Player1 || 'Jugador 1' },
-        { id: crypto.randomUUID(), name: team1Player2 || 'Jugador 2' }
+        { id: generateUUID(), name: team1Player1 || 'Jugador 1' },
+        { id: generateUUID(), name: team1Player2 || 'Jugador 2' }
       ]
     };
     const team2 = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       name: team2Name,
       players: [
-        { id: crypto.randomUUID(), name: team2Player1 || 'Jugador 3' },
-        { id: crypto.randomUUID(), name: team2Player2 || 'Jugador 4' }
+        { id: generateUUID(), name: team2Player1 || 'Jugador 3' },
+        { id: generateUUID(), name: team2Player2 || 'Jugador 4' }
       ]
     };
 

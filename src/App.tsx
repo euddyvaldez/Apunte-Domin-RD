@@ -23,6 +23,10 @@ export default function App() {
   const store = useStore();
   const [view, setView] = useState<'home' | 'setup' | 'game' | 'history' | 'practice'>('home');
 
+  if (!store) {
+    return <div className="flex items-center justify-center h-screen">Cargando aplicación...</div>;
+  }
+
   // Handle routing
   const navigate = (newView: 'home' | 'setup' | 'game' | 'history' | 'practice') => setView(newView);
 
