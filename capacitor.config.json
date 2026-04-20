@@ -1,0 +1,6 @@
+{
+  "appId": "com.apuntesdomino.rd",
+  "appName": "Apuntes de Dominó RD",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

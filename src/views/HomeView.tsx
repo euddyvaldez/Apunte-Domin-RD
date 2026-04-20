@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Play, History, Users, Plus, Trophy, Zap } from 'lucide-react';
+import { Play, History, Users, Plus, Trophy, Zap, Dices } from 'lucide-react';
 
 export default function HomeView({ navigate, store }: any) {
   const activeMatch = store.currentMatch;
@@ -19,7 +19,7 @@ export default function HomeView({ navigate, store }: any) {
           animate={{ scale: 1, opacity: 1 }}
           className="inline-block p-4 bg-primary text-white rounded-3xl shadow-lg mb-4"
         >
-          <Trophy className="w-12 h-12" />
+          <Dices className="w-12 h-12" />
         </motion.div>
         <h2 className="text-3xl font-display font-bold">¡Bienvenido!</h2>
         <p className="text-text-dim">Anota tus partidas de dominó como un profesional.</p>
