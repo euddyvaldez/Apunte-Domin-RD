@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Play, History, Users, Plus, Trophy, Zap, Dices } from 'lucide-react';
+import { Play, History, Plus, Dices } from 'lucide-react';
 
 export default function HomeView({ navigate, store }: any) {
   const activeMatch = store.currentMatch;
@@ -62,19 +62,6 @@ export default function HomeView({ navigate, store }: any) {
           </div>
         </button>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button 
-            onClick={() => navigate('practice')}
-            className="bg-accent/10 border border-accent/20 p-4 rounded-2xl flex flex-col items-center gap-2 hover:bg-accent/20 transition-all group"
-          >
-            <Zap className="w-6 h-6 text-accent group-hover:scale-125 transition-transform" />
-            <span className="text-sm font-bold text-accent">Práctica Rápida</span>
-          </button>
-          <button className="bg-bg-card border border-border-theme p-4 rounded-2xl flex flex-col items-center gap-2 opacity-50 cursor-not-allowed">
-            <Users className="w-6 h-6" />
-            <span className="text-sm font-bold">Jugadores</span>
-          </button>
-        </div>
       </div>
 
       {/* Footer Info */}

@@ -2,12 +2,9 @@ import { useState, ReactNode } from 'react';
 import { useStore } from './store';
 import { AnimatePresence, motion } from 'motion/react';
 import { 
-  Trophy, 
   History, 
   PlusCircle, 
-  Settings, 
   ArrowLeft, 
-  Users, 
   Home as HomeIcon,
   Moon,
   Sun,
@@ -17,21 +14,20 @@ import HomeView from './views/HomeView';
 import SetupView from './views/SetupView';
 import GameView from './views/GameView';
 import HistoryView from './views/HistoryView';
-import PracticeView from './views/PracticeView';
 
 export default function App() {
   const store = useStore();
-  const [view, setView] = useState<'home' | 'setup' | 'game' | 'history' | 'practice'>('home');
+  const [view, setView] = useState<'home' | 'setup' | 'game' | 'history'>('home');
 
   if (!store) {
     return <div className="flex items-center justify-center h-screen">Cargando aplicación...</div>;
   }
 
   // Handle routing
-  const navigate = (newView: 'home' | 'setup' | 'game' | 'history' | 'practice') => setView(newView);
+  const navigate = (newView: 'home' | 'setup' | 'game' | 'history') => setView(newView);
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 theme-${store.theme}`}>
+    <div className={`min-h-screen transition-all duration-500 theme-${store.theme} ${store.isDarkMode ? 'dark' : ''}`}>
       <div className="max-w-md mx-auto min-h-screen flex flex-col bg-bg-page shadow-xl overflow-hidden relative border-x border-border-theme">
         
         {/* Header */}
@@ -51,6 +47,13 @@ export default function App() {
           </div>
           
           <div className="flex items-center gap-3">
+            <button 
+              onClick={() => store.toggleDarkMode()}
+              className="p-2 bg-text-main/10 text-text-main rounded-full hover:bg-text-main/20 transition-all active:scale-90"
+              title={store.isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+            >
+              {store.isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             <button 
               onClick={() => {
                 const themes: ('minimalist' | 'escolar' | 'cartulina' | 'sleek')[] = ['minimalist', 'escolar', 'cartulina', 'sleek'];
@@ -80,7 +83,6 @@ export default function App() {
               {view === 'setup' && <SetupView navigate={navigate} store={store} />}
               {view === 'game' && <GameView navigate={navigate} store={store} />}
               {view === 'history' && <HistoryView navigate={navigate} store={store} />}
-              {view === 'practice' && <PracticeView navigate={navigate} store={store} />}
             </motion.div>
           </AnimatePresence>
         </main>

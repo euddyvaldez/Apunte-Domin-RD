@@ -10,17 +10,17 @@ const STORAGE_KEY = 'domino_rd_app_data';
 
 interface AppData {
   matches: Match[];
-  players: Player[];
   teams: Team[];
   theme: ThemeType;
+  isDarkMode: boolean;
   currentMatchId: string | null;
 }
 
 const DEFAULT_DATA: AppData = {
   matches: [],
-  players: [],
   teams: [],
   theme: 'minimalist',
+  isDarkMode: false,
   currentMatchId: null,
 };
 
@@ -59,12 +59,7 @@ export function useStore() {
   }, [data]);
 
   const setTheme = (theme: ThemeType) => setData(prev => ({ ...prev, theme }));
-
-  const addPlayer = (name: string) => {
-    const newPlayer: Player = { id: generateUUID(), name };
-    setData(prev => ({ ...prev, players: [newPlayer, ...prev.players] }));
-    return newPlayer;
-  };
+  const toggleDarkMode = () => setData(prev => ({ ...prev, isDarkMode: !prev.isDarkMode }));
 
   const startNewMatch = (teams: Team[], scoreLimit: number = 100) => {
     const newMatch: Match = {
@@ -142,7 +137,7 @@ export function useStore() {
     ...data,
     currentMatch,
     setTheme,
-    addPlayer,
+    toggleDarkMode,
     startNewMatch,
     addRound,
     deleteMatch,

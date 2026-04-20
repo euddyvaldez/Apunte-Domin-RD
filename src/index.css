@@ -80,6 +80,18 @@
     --radius: 1rem;
     font-family: var(--font-sans);
   }
+
+  .dark {
+    --primary: #f4f4f5;
+    --secondary: #a1a1aa;
+    --accent: #22c55e;
+    --bg-page: #09090b;
+    --bg-card: #18181b;
+    --text-main: #fafafa;
+    --text-dim: #a1a1aa;
+    --border-theme: #27272a;
+    color-scheme: dark;
+  }
 }
 
 body {
