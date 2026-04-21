@@ -44,6 +44,9 @@ export default function GameView({ navigate, store }: any) {
   const [initialTeamForModal, setInitialTeamForModal] = useState<0 | 1>(0);
   const [showOptions, setShowOptions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [isEditingMeta, setIsEditingMeta] = useState(false);
+  const [tempMeta, setTempMeta] = useState(match?.scoreLimit.toString() || '100');
+  const [dismissedFinishedModal, setDismissedFinishedModal] = useState(false);
 
   if (!match) {
     useEffect(() => navigate('home'), []);
@@ -55,38 +58,115 @@ export default function GameView({ navigate, store }: any) {
 
   const isFinished = match.status === 'finished';
 
+  // Reset dismissed state if match becomes active again
+  useEffect(() => {
+    if (!isFinished) {
+      setDismissedFinishedModal(false);
+    }
+  }, [isFinished]);
+
   return (
     <div className="flex flex-col h-full bg-bg-page select-none">
       {/* Scoreboard */}
       <div className="p-4 grid grid-cols-2 gap-4 sticky top-0 bg-bg-page/80 backdrop-blur-md z-40 border-b border-border-theme">
-        <div className="col-span-2 flex justify-center mb-1">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-dim/60 bg-text-main/5 px-3 py-1 rounded-full border border-border-theme/50">
-            Meta: {match.scoreLimit} Puntos
-          </span>
+        <div className="col-span-2 flex flex-wrap justify-center items-center gap-2 mb-1">
+          {/* Meta Button */}
+          {isEditingMeta ? (
+            <div className="flex items-center gap-2">
+              <input 
+                type="number"
+                value={tempMeta}
+                autoFocus
+                onChange={(e) => setTempMeta(e.target.value)}
+                onBlur={() => {
+                  const val = parseInt(tempMeta);
+                  if (!isNaN(val) && val > 0) {
+                    store.updateMatchLimit(match.id, val);
+                  }
+                  setIsEditingMeta(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const val = parseInt(tempMeta);
+                    if (!isNaN(val) && val > 0) {
+                      store.updateMatchLimit(match.id, val);
+                    }
+                    setIsEditingMeta(false);
+                  }
+                  if (e.key === 'Escape') {
+                    setTempMeta(match.scoreLimit.toString());
+                    setIsEditingMeta(false);
+                  }
+                }}
+                className="w-16 text-[10px] font-black text-center bg-bg-card border border-primary/50 rounded-full py-0.5 outline-none focus:ring-1 focus:ring-primary/30"
+              />
+              <span className="text-[7px] font-bold text-primary uppercase">Nueva Meta</span>
+            </div>
+          ) : (
+            <button 
+              onClick={() => {
+                setTempMeta(match.scoreLimit.toString());
+                setIsEditingMeta(true);
+              }}
+              className="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-border-theme/50 transition-all text-text-dim/60 bg-text-main/5 hover:bg-primary/5 hover:border-primary/30"
+            >
+              Meta: {match.scoreLimit}
+            </button>
+          )}
         </div>
-        <ScoreCard 
-          name={match.teams[0].name} 
-          score={scoreT1} 
-          limit={match.scoreLimit} 
-          primary 
-          winner={match.winnerTeamId === match.teams[0].id}
-          isFinished={isFinished}
-          onAdd={() => {
-            setInitialTeamForModal(0);
-            setShowAddPoints(true);
-          }}
-        />
-        <ScoreCard 
-          name={match.teams[1].name} 
-          score={scoreT2} 
-          limit={match.scoreLimit} 
-          winner={match.winnerTeamId === match.teams[1].id}
-          isFinished={isFinished}
-          onAdd={() => {
-            setInitialTeamForModal(1);
-            setShowAddPoints(true);
-          }}
-        />
+        <div className="flex flex-col gap-2">
+          <ScoreCard 
+            name={match.teams[0].name} 
+            score={scoreT1} 
+            limit={match.scoreLimit} 
+            primary 
+            winner={match.winnerTeamId === match.teams[0].id}
+            isFinished={isFinished}
+            onAdd={() => {
+              setInitialTeamForModal(0);
+              setShowAddPoints(true);
+            }}
+          />
+          {!isFinished && (
+            <QuickActions 
+              match={match} 
+              onQuickAdd={(type: any, pts: number) => {
+                store.addRound(match.id, {
+                  playType: type,
+                  pointsTeam1: pts,
+                  pointsTeam2: 0,
+                  winningTeamIndex: 0
+                });
+              }}
+            />
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <ScoreCard 
+            name={match.teams[1].name} 
+            score={scoreT2} 
+            limit={match.scoreLimit} 
+            winner={match.winnerTeamId === match.teams[1].id}
+            isFinished={isFinished}
+            onAdd={() => {
+              setInitialTeamForModal(1);
+              setShowAddPoints(true);
+            }}
+          />
+          {!isFinished && (
+            <QuickActions 
+              match={match} 
+              onQuickAdd={(type: any, pts: number) => {
+                store.addRound(match.id, {
+                  playType: type,
+                  pointsTeam1: 0,
+                  pointsTeam2: pts,
+                  winningTeamIndex: 1
+                });
+              }}
+            />
+          )}
+        </div>
         
         {!isFinished && (
            <div className="col-span-2 flex justify-end">
@@ -283,7 +363,7 @@ export default function GameView({ navigate, store }: any) {
         </div>
       )}
 
-      {isFinished && (
+      {isFinished && !dismissedFinishedModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
@@ -294,12 +374,28 @@ export default function GameView({ navigate, store }: any) {
               <Trophy className="w-10 h-10" />
             </div>
             <h3 className="text-2xl font-black font-display text-text-main">¡Juego Terminado!</h3>
-            <div className="space-y-1">
-              <p className="text-xs uppercase font-bold text-text-dim tracking-widest">El ganador es</p>
-              <p className="text-xl font-bold text-primary">
-                {match.winnerTeamId === match.teams[0].id ? match.teams[0].name : match.teams[1].name}
-              </p>
+            
+            <div className="space-y-4 py-2">
+              <div className="space-y-1">
+                <p className="text-xs uppercase font-bold text-text-dim tracking-widest">El ganador es</p>
+                <p className="text-xl font-bold text-primary">
+                  {match.winnerTeamId === match.teams[0].id ? match.teams[0].name : match.teams[1].name}
+                </p>
+              </div>
+
+              {/* Resultado Final */}
+              <div className="grid grid-cols-2 gap-4 bg-text-main/5 p-4 rounded-2xl border border-border-theme">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase text-text-dim opacity-60 truncate">{match.teams[0].name}</span>
+                  <span className="text-2xl font-display font-black text-primary">{scoreT1}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase text-text-dim opacity-60 truncate">{match.teams[1].name}</span>
+                  <span className="text-2xl font-display font-black text-secondary">{scoreT2}</span>
+                </div>
+              </div>
             </div>
+
             <div className="flex flex-col gap-3 mt-6">
               <button 
                 onClick={() => {
@@ -311,11 +407,17 @@ export default function GameView({ navigate, store }: any) {
                 Nueva Partida
               </button>
               <button 
+                onClick={() => setDismissedFinishedModal(true)}
+                className="w-full bg-white border-2 border-border-theme text-text-main p-4 rounded-2xl hover:bg-bg-card active:scale-95 transition-all font-bold"
+              >
+                Volver a la partida
+              </button>
+              <button 
                 onClick={() => {
                   store.setCurrentMatch(null);
                   navigate('home');
                 }}
-                className="w-full bg-text-main/10 text-text-main p-4 rounded-2xl hover:bg-text-main/20 active:scale-95 transition-all font-bold"
+                className="w-full bg-text-main/10 text-text-main p-4 rounded-2xl hover:bg-text-main/20 active:scale-95 transition-all font-bold text-sm"
               >
                 Volver al Inicio
               </button>
@@ -361,7 +463,7 @@ function ScoreCard({ name, score, limit, winner, onAdd, isFinished }: any) {
     <motion.div 
       whileTap={!isFinished ? { scale: 0.95 } : {}}
       onClick={() => !isFinished && onAdd()}
-      className={`relative p-5 rounded-3xl overflow-hidden transition-all duration-300 border-2 cursor-pointer ${
+      className={`relative p-5 rounded-3xl overflow-hidden transition-all duration-300 border-2 cursor-pointer h-full ${
         winner ? 'bg-primary border-primary shadow-lg scale-105' : 
         percentage > 90 ? 'bg-accent/10 border-accent/50' : 
         'bg-bg-card border-border-theme hover:border-primary/50'
@@ -394,6 +496,32 @@ function ScoreCard({ name, score, limit, winner, onAdd, isFinished }: any) {
   );
 }
 
+function QuickActions({ match, onQuickAdd }: any) {
+  const actions: { type: PlayType, label: string, pts: number }[] = [
+    { type: 'Capicúa', label: 'Capicua', pts: match.capicuaPoints || 30 },
+    { type: 'Paso de salida', label: 'Salida', pts: match.pasoSalidaPoints || 30 },
+    { type: 'Pase Corrido', label: 'Corrido', pts: match.pasoCorridoPoints || 30 }
+  ];
+
+  return (
+    <div className="grid grid-cols-3 gap-1 px-1">
+      {actions.map(action => (
+        <button
+          key={action.type}
+          onClick={(e) => {
+            e.stopPropagation();
+            onQuickAdd(action.type, action.pts);
+          }}
+          className="flex flex-col items-center justify-center py-1.5 bg-bg-card border border-border-theme rounded-lg hover:border-primary/50 hover:bg-primary/5 active:scale-90 transition-all group"
+        >
+          <span className="text-[7px] font-black uppercase text-text-dim group-hover:text-primary transition-colors">{action.label}</span>
+          <span className="text-[9px] font-black text-primary">+{action.pts}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function RoundEntry({ round, color }: any) {
   return (
     <motion.div 
@@ -421,10 +549,7 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
 
   const types: { name: PlayType, icon: React.ReactNode }[] = [
     { name: 'Dominó', icon: <Zap className="w-3 h-3" /> },
-    { name: 'Capicúa', icon: <Star className="w-3 h-3" /> },
     { name: 'Tranque', icon: <Shield className="w-3 h-3" /> },
-    { name: 'Paso de salida', icon: <Target className="w-3 h-3" /> },
-    { name: 'Pase Corrido', icon: <Hash className="w-3 h-3" /> },
     { name: 'Otro', icon: <Circle className="w-3 h-3" /> }
   ];
 
@@ -451,19 +576,26 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 perspective-[1000px]">
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
         onClick={onClose}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
       />
       <motion.div 
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        className="relative w-full max-w-md bg-bg-page rounded-t-[2rem] sm:rounded-3xl p-5 shadow-2xl space-y-4"
+        initial={{ y: '100%', opacity: 0.5 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: '100%', opacity: 0.5 }}
+        transition={{ 
+          type: 'spring',
+          damping: 25,
+          stiffness: 300,
+          mass: 0.8
+        }}
+        className="relative w-full max-w-md bg-bg-page rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl space-y-5"
       >
         <div className="w-10 h-1 bg-border-theme/50 rounded-full mx-auto" />
         

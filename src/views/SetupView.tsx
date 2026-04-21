@@ -18,6 +18,9 @@ export default function SetupView({ navigate, store }: any) {
   const [team2Player2, setTeam2Player2] = useState('');
 
   const [scoreLimit, setScoreLimit] = useState(100);
+  const [capicua, setCapicua] = useState(30);
+  const [salida, setSalida] = useState(30);
+  const [corrido, setCorrido] = useState(30);
 
   const handleStart = () => {
     const team1 = {
@@ -37,7 +40,7 @@ export default function SetupView({ navigate, store }: any) {
       ]
     };
 
-    store.startNewMatch([team1, team2], scoreLimit);
+    store.startNewMatch([team1, team2], scoreLimit, capicua, salida, corrido);
     navigate('game');
   };
 
@@ -49,45 +52,84 @@ export default function SetupView({ navigate, store }: any) {
       </header>
 
       <div className="space-y-6">
-        {/* Límite de Puntos */}
-        <section className="bg-bg-card border border-border-theme p-5 rounded-2xl space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Target className="w-5 h-5 text-primary" />
-            <h3 className="font-bold">Límite de Puntos</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[100, 150, 200, 500].map(val => (
-              <button
-                key={val}
-                onClick={() => setScoreLimit(val)}
-                className={`flex-1 min-w-[70px] py-3 rounded-xl border-2 transition-all font-bold ${
-                  scoreLimit === val 
-                    ? 'border-primary bg-primary/10 text-primary' 
-                    : 'border-transparent bg-primary/5 text-text-dim'
-                }`}
-              >
-                {val}
-              </button>
-            ))}
-          </div>
-          
-          <div className="pt-2">
-            <label className="text-[10px] uppercase font-bold text-text-dim tracking-widest pl-1 mb-1 block">
-              O puntos personalizados
-            </label>
-            <input 
-              type="number"
-              placeholder="Ej: 300"
-              value={[100, 150, 200, 500].includes(scoreLimit) ? '' : scoreLimit}
-              onChange={(e) => {
-                const val = parseInt(e.target.value);
-                if (!isNaN(val)) setScoreLimit(val);
-                else setScoreLimit(0);
-              }}
-              className="w-full bg-bg-page p-3 rounded-xl text-sm border-none ring-1 ring-border-theme focus:ring-primary transition-all text-center font-bold"
-            />
-          </div>
-        </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Límite de Puntos */}
+          <section className="bg-bg-card border border-border-theme p-5 rounded-2xl space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-5 h-5 text-primary" />
+              <h3 className="font-bold">Límite de Puntos</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[100, 150, 200, 500].map(val => (
+                <button
+                  key={val}
+                  onClick={() => setScoreLimit(val)}
+                  className={`flex-1 min-w-[70px] py-3 rounded-xl border-2 transition-all font-bold ${
+                    scoreLimit === val 
+                      ? 'border-primary bg-primary/10 text-primary' 
+                      : 'border-transparent bg-primary/5 text-text-dim'
+                  }`}
+                >
+                  {val}
+                </button>
+              ))}
+            </div>
+            
+            <div className="pt-2">
+              <label className="text-[10px] uppercase font-bold text-text-dim tracking-widest pl-1 mb-1 block">
+                O puntos personalizados
+              </label>
+              <input 
+                type="number"
+                placeholder="Ej: 300"
+                value={[100, 150, 200, 500].includes(scoreLimit) ? '' : scoreLimit}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val)) setScoreLimit(val);
+                  else setScoreLimit(0);
+                }}
+                className="w-full bg-bg-page p-3 rounded-xl text-sm border-none ring-1 ring-border-theme focus:ring-primary transition-all text-center font-bold"
+              />
+            </div>
+          </section>
+
+          {/* Apuntes Rápidos */}
+          <section className="bg-bg-card border border-border-theme p-5 rounded-2xl space-y-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <h3 className="font-bold">Apuntes Rápidos</h3>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="flex flex-col gap-1 p-2 bg-bg-page rounded-xl border border-border-theme/50">
+                <span className="text-[10px] uppercase font-black text-text-dim/60 px-1">Capicúa</span>
+                <input 
+                  type="number"
+                  value={capicua}
+                  onChange={(e) => setCapicua(parseInt(e.target.value) || 0)}
+                  className="w-full bg-bg-card p-1.5 rounded-lg text-sm text-center font-black border-none ring-1 ring-border-theme focus:ring-green-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1 p-2 bg-bg-page rounded-xl border border-border-theme/50">
+                <span className="text-[10px] uppercase font-black text-text-dim/60 px-1">Corrido</span>
+                <input 
+                  type="number"
+                  value={corrido}
+                  onChange={(e) => setCorrido(parseInt(e.target.value) || 0)}
+                  className="w-full bg-bg-card p-1.5 rounded-lg text-sm text-center font-black border-none ring-1 ring-border-theme focus:ring-green-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1 p-2 bg-bg-page rounded-xl border border-border-theme/50 min-w-full col-span-2 sm:col-span-1">
+                <span className="text-[10px] uppercase font-black text-text-dim/60 px-1">Salida</span>
+                <input 
+                  type="number"
+                  value={salida}
+                  onChange={(e) => setSalida(parseInt(e.target.value) || 0)}
+                  className="w-full bg-bg-card p-1.5 rounded-lg text-sm text-center font-black border-none ring-1 ring-border-theme focus:ring-green-500"
+                />
+              </div>
+            </div>
+          </section>
+        </div>
 
         {/* Equipos */}
         <div className="grid gap-6">

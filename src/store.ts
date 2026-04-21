@@ -61,13 +61,22 @@ export function useStore() {
   const setTheme = (theme: ThemeType) => setData(prev => ({ ...prev, theme }));
   const toggleDarkMode = () => setData(prev => ({ ...prev, isDarkMode: !prev.isDarkMode }));
 
-  const startNewMatch = (teams: Team[], scoreLimit: number = 100) => {
+  const startNewMatch = (
+    teams: Team[], 
+    scoreLimit: number = 100, 
+    capicua: number = 30, 
+    pasoSalida: number = 30, 
+    pasoCorrido: number = 30
+  ) => {
     const newMatch: Match = {
       id: generateUUID(),
       date: Date.now(),
       teams,
       rounds: [],
       scoreLimit,
+      capicuaPoints: capicua,
+      pasoSalidaPoints: pasoSalida,
+      pasoCorridoPoints: pasoCorrido,
       status: 'active',
     };
     setData(prev => ({
@@ -190,6 +199,41 @@ export function useStore() {
     }));
   };
 
+  const updateMatchLimit = (matchId: string, newLimit: number) => {
+    setData(prev => {
+      const matchIndex = prev.matches.findIndex(m => m.id === matchId);
+      if (matchIndex === -1) return prev;
+
+      const updatedMatch = recalculateMatch({
+        ...prev.matches[matchIndex],
+        scoreLimit: newLimit
+      });
+
+      const updatedMatches = [...prev.matches];
+      updatedMatches[matchIndex] = updatedMatch;
+
+      return { ...prev, matches: updatedMatches };
+    });
+  };
+
+  const updateQuickPointsConfig = (matchId: string, field: 'capicua' | 'salida' | 'corrido', newValue: number) => {
+    setData(prev => {
+      const matchIndex = prev.matches.findIndex(m => m.id === matchId);
+      if (matchIndex === -1) return prev;
+
+      const updatedMatches = [...prev.matches];
+      const match = updatedMatches[matchIndex];
+      
+      if (field === 'capicua') match.capicuaPoints = newValue;
+      if (field === 'salida') match.pasoSalidaPoints = newValue;
+      if (field === 'corrido') match.pasoCorridoPoints = newValue;
+
+      updatedMatches[matchIndex] = { ...match };
+
+      return { ...prev, matches: updatedMatches };
+    });
+  };
+
   const currentMatch = data.matches.find(m => m.id === data.currentMatchId) || null;
 
   return {
@@ -202,6 +246,8 @@ export function useStore() {
     updateRound,
     deleteRound,
     deleteMatch,
+    updateMatchLimit,
+    updateQuickPointsConfig,
     setCurrentMatch: (id: string | null) => setData(prev => ({ ...prev, currentMatchId: id })),
   };
 }

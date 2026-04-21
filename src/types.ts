@@ -36,6 +36,9 @@ export interface Match {
   teams: Team[];
   rounds: Round[];
   scoreLimit: number;
+  capicuaPoints: number;
+  pasoSalidaPoints: number;
+  pasoCorridoPoints: number;
   winnerTeamId?: string;
   status: 'active' | 'finished';
 }
