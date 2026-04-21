@@ -40,30 +40,10 @@ const PLAY_ABBR: Record<string, string> = {
 export default function GameView({ navigate, store }: any) {
   const match = store.currentMatch;
   const [showAddPoints, setShowAddPoints] = useState(false);
-  const [showAd, setShowAd] = useState(false);
-  const [canCloseAd, setCanCloseAd] = useState(false);
-  const [hasShownWinAd, setHasShownWinAd] = useState(false);
   const [roundToEdit, setRoundToEdit] = useState<any>(null);
   const [initialTeamForModal, setInitialTeamForModal] = useState<0 | 1>(0);
   const [showOptions, setShowOptions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-
-  useEffect(() => {
-    if (showAd) {
-      setCanCloseAd(false);
-      const timer = setTimeout(() => setCanCloseAd(true), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showAd]);
-
-  useEffect(() => {
-    if (match && match.status === 'finished' && !hasShownWinAd) {
-      setTimeout(() => setShowAd(true), 500);
-      setHasShownWinAd(true);
-    } else if (match && match.status === 'active') {
-      setHasShownWinAd(false);
-    }
-  }, [match?.status, hasShownWinAd]);
 
   if (!match) {
     useEffect(() => navigate('home'), []);
@@ -368,71 +348,6 @@ export default function GameView({ navigate, store }: any) {
               setRoundToEdit(null);
             }}
           />
-        )}
-      </AnimatePresence>
-
-      {/* Advertisement Modal */}
-      <AnimatePresence>
-        {showAd && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-0">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/95 backdrop-blur-xl"
-            />
-            <motion.div 
-              initial={{ scale: 1.1, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 1.1, opacity: 0 }}
-              className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden"
-            >
-              <AnimatePresence>
-                {canCloseAd && (
-                  <motion.button 
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ type: 'spring', damping: 15 }}
-                    onClick={() => setShowAd(false)}
-                    className="absolute top-8 right-8 z-50 w-12 h-12 bg-black/40 text-white rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 active:scale-90 transition-all shadow-xl"
-                  >
-                    <X className="w-8 h-8" />
-                  </motion.button>
-                )}
-              </AnimatePresence>
-              
-              <div 
-                className="w-full h-full relative cursor-pointer"
-                onClick={() => window.open('https://ais-dev-l3dac2ls5evpj6bfb7thz6-401655172120.us-west2.run.app', '_blank')}
-              >
-                <img 
-                  src="https://i.postimg.cc/D0ch59t6/Anuncio1.png" 
-                  alt="Anuncio Dominó RD"
-                  className="w-full h-full object-contain bg-black"
-                  style={{ imageRendering: 'auto' }}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    // Respaldo por si hay algún problema con la imagen externa principal
-                    if (!target.src.includes('squarespace')) {
-                      target.src = 'https://images.squarespace-cdn.com/content/v1/5e73ef59d186f916847d06d4/1585671510255-YI0N0K2K2H1K2G1G1G1G/Domino+RD+Ad.jpg';
-                    }
-                  }}
-                />
-                
-                {/* Overlay sutil para indicar que se puede pulsar */}
-                <div className="absolute bottom-10 left-0 right-0 p-8 flex justify-center pointer-events-none">
-                  <motion.div 
-                    animate={{ scale: [1, 1.05, 1] }} 
-                    transition={{ repeat: Infinity, duration: 2 }}
-                    className="bg-green-500 text-white px-10 py-4 rounded-full font-black text-xl shadow-[0_0_30px_rgba(34,197,94,0.4)] tracking-tight uppercase"
-                  >
-                    ¡Jugar Ahora!
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
         )}
       </AnimatePresence>
     </div>

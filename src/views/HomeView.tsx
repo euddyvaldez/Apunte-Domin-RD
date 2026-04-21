@@ -64,6 +64,25 @@ export default function HomeView({ navigate, store }: any) {
 
       </div>
 
+      {/* Banner Advertisement */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full h-auto cursor-pointer overflow-hidden rounded-xl shadow-md border border-border-theme bg-bg-card"
+        onClick={() => window.open('https://ais-dev-l3dac2ls5evpj6bfb7thz6-401655172120.us-west2.run.app', '_blank')}
+      >
+        <img 
+          src="https://i.postimg.cc/j2v1YXxc/Anuncio1-banner.png" 
+          alt="Anuncio Dominó RD Banner"
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none'; // Ocultar si falla
+          }}
+        />
+      </motion.div>
+
       {/* Footer Info */}
       <footer className="text-center pt-8">
         <p className="text-[10px] text-text-dim uppercase tracking-[0.2em]">
