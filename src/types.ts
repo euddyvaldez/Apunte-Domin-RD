@@ -13,7 +13,6 @@ export interface Player {
 export interface Team {
   id: string;
   name: string;
-  players: Player[];
 }
 
 export interface Round {
@@ -21,10 +20,8 @@ export interface Round {
   matchId: string;
   number: number;
   playType: PlayType;
-  pointsTeam1: number;
-  pointsTeam2: number;
-  winningTeamIndex: 0 | 1; // Index 0 for Team 1, 1 for Team 2
-  closerPlayerId?: string;
+  points: number;
+  winningTeamIndex: number;
   timestamp: number;
   isEdited?: boolean;
   isDeleted?: boolean;

@@ -41,20 +41,23 @@ export default function GameView({ navigate, store }: any) {
   const match = store.currentMatch;
   const [showAddPoints, setShowAddPoints] = useState(false);
   const [roundToEdit, setRoundToEdit] = useState<any>(null);
-  const [initialTeamForModal, setInitialTeamForModal] = useState<0 | 1>(0);
+  const [initialTeamForModal, setInitialTeamForModal] = useState<number>(0);
   const [showOptions, setShowOptions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isEditingMeta, setIsEditingMeta] = useState(false);
   const [tempMeta, setTempMeta] = useState(match?.scoreLimit.toString() || '100');
   const [dismissedFinishedModal, setDismissedFinishedModal] = useState(false);
+  const [editingTeamIdx, setEditingTeamIdx] = useState<number | null>(null);
+  const [tempTeamName, setTempTeamName] = useState('');
 
   if (!match) {
     useEffect(() => navigate('home'), []);
     return null;
   }
 
-  const scoreT1 = match.rounds.reduce((acc: number, r: any) => acc + (r.winningTeamIndex === 0 && !r.isDeleted ? r.pointsTeam1 : 0), 0);
-  const scoreT2 = match.rounds.reduce((acc: number, r: any) => acc + (r.winningTeamIndex === 1 && !r.isDeleted ? r.pointsTeam2 : 0), 0);
+  const teamScores = match.teams.map((_: any, index: number) => {
+    return match.rounds.reduce((acc: number, r: any) => acc + (r.winningTeamIndex === index && !r.isDeleted ? r.points : 0), 0);
+  });
 
   const isFinished = match.status === 'finished';
 
@@ -65,11 +68,14 @@ export default function GameView({ navigate, store }: any) {
     }
   }, [isFinished]);
 
+  const gridColsClass = match.teams.length === 4 ? 'grid-cols-4' : 
+                        match.teams.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
+
   return (
     <div className="flex flex-col h-full bg-bg-page select-none">
       {/* Scoreboard */}
-      <div className="p-4 grid grid-cols-2 gap-4 sticky top-0 bg-bg-page/80 backdrop-blur-md z-40 border-b border-border-theme">
-        <div className="col-span-2 flex flex-wrap justify-center items-center gap-2 mb-1">
+      <div className="p-3 pb-2 flex flex-col gap-2 sticky top-0 bg-bg-page/80 backdrop-blur-md z-40 border-b border-border-theme">
+        <div className="flex justify-center items-center gap-2">
           {/* Meta Button */}
           {isEditingMeta ? (
             <div className="flex items-center gap-2">
@@ -108,68 +114,65 @@ export default function GameView({ navigate, store }: any) {
                 setTempMeta(match.scoreLimit.toString());
                 setIsEditingMeta(true);
               }}
-              className="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-border-theme/50 transition-all text-text-dim/60 bg-text-main/5 hover:bg-primary/5 hover:border-primary/30"
+              className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-border-theme/50 transition-all text-text-dim/60 bg-text-main/5 hover:bg-primary/5 hover:border-primary/30"
             >
               Meta: {match.scoreLimit}
             </button>
           )}
         </div>
-        <div className="flex flex-col gap-2">
-          <ScoreCard 
-            name={match.teams[0].name} 
-            score={scoreT1} 
-            limit={match.scoreLimit} 
-            primary 
-            winner={match.winnerTeamId === match.teams[0].id}
-            isFinished={isFinished}
-            onAdd={() => {
-              setInitialTeamForModal(0);
-              setShowAddPoints(true);
-            }}
-          />
-          {!isFinished && (
-            <QuickActions 
-              match={match} 
-              onQuickAdd={(type: any, pts: number) => {
-                store.addRound(match.id, {
-                  playType: type,
-                  pointsTeam1: pts,
-                  pointsTeam2: 0,
-                  winningTeamIndex: 0
-                });
-              }}
-            />
-          )}
-        </div>
-        <div className="flex flex-col gap-2">
-          <ScoreCard 
-            name={match.teams[1].name} 
-            score={scoreT2} 
-            limit={match.scoreLimit} 
-            winner={match.winnerTeamId === match.teams[1].id}
-            isFinished={isFinished}
-            onAdd={() => {
-              setInitialTeamForModal(1);
-              setShowAddPoints(true);
-            }}
-          />
-          {!isFinished && (
-            <QuickActions 
-              match={match} 
-              onQuickAdd={(type: any, pts: number) => {
-                store.addRound(match.id, {
-                  playType: type,
-                  pointsTeam1: 0,
-                  pointsTeam2: pts,
-                  winningTeamIndex: 1
-                });
-              }}
-            />
-          )}
+
+        <div className={`grid ${gridColsClass} gap-2`}>
+          {match.teams.map((team: any, idx: number) => (
+            <div key={team.id} className="flex flex-col gap-1.5 min-w-0">
+              <ScoreCard 
+                name={team.name} 
+                score={teamScores[idx]} 
+                limit={match.scoreLimit} 
+                isManyTeams={match.teams.length >= 3}
+                primary={idx === 0}
+                secondary={idx === 1}
+                accent={idx === 2}
+                purple={idx === 3}
+                winner={match.winnerTeamId === team.id}
+                isFinished={isFinished}
+                isEditingName={editingTeamIdx === idx}
+                tempName={tempTeamName}
+                onTempNameChange={setTempTeamName}
+                onStartRename={() => {
+                  setEditingTeamIdx(idx);
+                  setTempTeamName(team.name);
+                }}
+                onRenameConfirm={() => {
+                  if (tempTeamName.trim()) {
+                    store.updateTeamName(match.id, idx, tempTeamName.trim());
+                  }
+                  setEditingTeamIdx(null);
+                }}
+                onRenameCancel={() => setEditingTeamIdx(null)}
+                onAdd={() => {
+                  setInitialTeamForModal(idx);
+                  setShowAddPoints(true);
+                }}
+              />
+              {!isFinished && (
+                <QuickActions 
+                  match={match} 
+                  isManyTeams={match.teams.length >= 3}
+                  onQuickAdd={(type: any, pts: number) => {
+                    store.addRound(match.id, {
+                      playType: type,
+                      points: pts,
+                      winningTeamIndex: idx
+                    });
+                  }}
+                />
+              )}
+            </div>
+          ))}
         </div>
         
         {!isFinished && (
-           <div className="col-span-2 flex justify-end">
+           <div className="flex justify-end">
              <button 
                onClick={() => setShowOptions(!showOptions)}
                className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-text-dim hover:text-primary transition-colors"
@@ -217,74 +220,80 @@ export default function GameView({ navigate, store }: any) {
       </AnimatePresence>
 
       {/* Rounds History List - Show Split History on Front */}
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-3 overflow-y-auto pb-32 scrollbar-hide">
         {match.rounds.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-text-dim/30 italic">
-            <Zap className="w-12 h-12 mb-2" />
+            <Zap className="w-12 h-12 mb-2 text-text-dim/20" />
             <p>Toca un equipo para anotar puntos</p>
           </div>
         ) : (
-          <div className="flex gap-4 min-h-full">
-            {/* Team 1 Front Column */}
-            <div className="flex-1 space-y-2">
-              <div className="text-center pb-1 border-b border-border-theme">
-                <span className="text-[10px] font-black uppercase text-primary tracking-widest">{match.teams[0].name}</span>
+          <div className="flex flex-col gap-3 w-full">
+            <div className="w-full">
+              <div className={`grid ${gridColsClass} gap-2`}>
+                {match.teams.map((team: any, teamIdx: number) => (
+                  <div key={team.id} className="flex-1 space-y-1 min-w-0">
+                    <div className="text-center pb-0.5 border-b border-border-theme">
+                      <span className={`text-[7px] font-black uppercase tracking-widest truncate block ${
+                        teamIdx === 0 ? 'text-primary' : 
+                        teamIdx === 1 ? 'text-secondary' :
+                        teamIdx === 2 ? 'text-accent' : 'text-purple-500'
+                      }`}>
+                        {team.name}
+                      </span>
+                    </div>
+                    {[...match.rounds].filter((r: any) => r.winningTeamIndex === teamIdx).reverse().map((round: any) => (
+                      <button 
+                        key={round.id} 
+                        onClick={() => setRoundToEdit(round)}
+                        className={`w-full p-1 bg-bg-card border border-border-theme rounded-lg flex flex-col items-center hover:border-primary/30 active:scale-95 transition-all text-center relative overflow-hidden group ${round.isDeleted ? 'opacity-30 grayscale saturate-0' : ''}`}
+                      >
+                        <span className={`text-[6px] font-black uppercase tracking-widest ${
+                          round.isDeleted ? 'text-gray-400' : 
+                          teamIdx === 0 ? 'text-primary/40' : 
+                          teamIdx === 1 ? 'text-secondary/40' :
+                          teamIdx === 2 ? 'text-accent/40' : 'text-purple-500/40'
+                        }`}>
+                          {PLAY_ABBR[round.playType] || 'OTR'}
+                        </span>
+                        <span className={`text-sm font-display font-black ${
+                          round.isDeleted ? 'text-gray-400 line-through decoration-red-500' : 
+                          teamIdx === 0 ? 'text-primary' : 
+                          teamIdx === 1 ? 'text-secondary' :
+                          teamIdx === 2 ? 'text-accent' : 'text-purple-500'
+                        }`}>
+                          +{round.points}
+                        </span>
+                        {round.isEdited && !round.isDeleted && (
+                          <div className="absolute top-0 right-0 bg-yellow-400 w-1.5 h-1.5 rounded-bl-sm" title="Editado" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ))}
               </div>
-              {[...match.rounds].filter((r: any) => r.winningTeamIndex === 0).reverse().map((round: any) => (
-                <button 
-                  key={round.id} 
-                  onClick={() => setRoundToEdit(round)}
-                  className={`w-full p-2 bg-bg-card border border-border-theme rounded-xl flex flex-col items-center hover:bg-primary/5 active:scale-95 transition-all text-center relative overflow-hidden group ${round.isDeleted ? 'opacity-30 grayscale saturate-0' : ''}`}
-                >
-                  <span className={`text-[8px] font-black uppercase tracking-tighter ${round.isDeleted ? 'text-gray-400' : 'text-primary/50'}`}>
-                    {PLAY_ABBR[round.playType] || 'OTR'}
-                  </span>
-                  <span className={`text-xl font-display font-black ${round.isDeleted ? 'text-gray-400 line-through decoration-red-500 decoration-2' : 'text-primary'}`}>
-                    +{round.pointsTeam1}
-                  </span>
-                  {round.isEdited && !round.isDeleted && (
-                    <div className="absolute top-0 right-0 bg-yellow-400 w-2 h-2 rounded-bl-sm" title="Editado" />
-                  )}
-                  {!round.isDeleted && (
-                    <span className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[8px] font-bold text-primary uppercase">Editar</span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="w-[1px] bg-border-theme/50" />
-
-            {/* Team 2 Front Column */}
-            <div className="flex-1 space-y-2">
-              <div className="text-center pb-1 border-b border-border-theme">
-                <span className="text-[10px] font-black uppercase text-secondary tracking-widest">{match.teams[1].name}</span>
-              </div>
-              {[...match.rounds].filter((r: any) => r.winningTeamIndex === 1).reverse().map((round: any) => (
-                <button 
-                  key={round.id} 
-                  onClick={() => setRoundToEdit(round)}
-                  className={`w-full p-2 bg-bg-card border border-border-theme rounded-xl flex flex-col items-center hover:bg-secondary/5 active:scale-95 transition-all text-center relative overflow-hidden group ${round.isDeleted ? 'opacity-30 grayscale saturate-0' : ''}`}
-                >
-                  <span className={`text-[8px] font-black uppercase tracking-tighter ${round.isDeleted ? 'text-gray-400' : 'text-secondary/50'}`}>
-                    {PLAY_ABBR[round.playType] || 'OTR'}
-                  </span>
-                  <span className={`text-xl font-display font-black ${round.isDeleted ? 'text-gray-400 line-through decoration-red-500 decoration-2' : 'text-secondary'}`}>
-                    +{round.pointsTeam2}
-                  </span>
-                  {round.isEdited && !round.isDeleted && (
-                    <div className="absolute top-0 right-0 bg-yellow-400 w-2 h-2 rounded-bl-sm" title="Editado" />
-                  )}
-                  {!round.isDeleted && (
-                    <span className="absolute inset-0 bg-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[8px] font-bold text-secondary uppercase">Editar</span>
-                  )}
-                </button>
-              ))}
             </div>
           </div>
         )}
       </div>
 
-      {/* History Bottom Sheet - Show sequential log one by one */}
+      {/* Bitacora Tab Handle */}
+      {!isFinished && (
+        <div className="fixed bottom-[4rem] left-0 right-0 z-40 flex justify-center pointer-events-none">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowHistory(true)}
+            className="pointer-events-auto bg-bg-card border-x border-t border-border-theme rounded-t-2xl px-12 py-1.5 pb-2 shadow-[0_-4px_20px_rgb(0,0,0,0.05)] flex flex-col items-center gap-1 group transition-all hover:bg-primary/5 active:bg-primary/10"
+          >
+            <div className="w-12 h-1 bg-border-theme/60 rounded-full group-hover:bg-primary/30 transition-colors" />
+            <div className="flex items-center gap-2">
+              <HistoryIcon className="w-3.5 h-3.5 text-text-dim group-hover:text-primary transition-colors" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-text-dim group-hover:text-primary transition-colors">Bitácora</span>
+            </div>
+          </motion.button>
+        </div>
+      )}
+
+      {/* History Bottom Sheet */}
       <AnimatePresence>
         {showHistory && (
           <>
@@ -308,7 +317,13 @@ export default function GameView({ navigate, store }: any) {
               
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {[...match.rounds].reverse().map((round: any) => (
-                  <div key={round.id} className={`flex items-center justify-between p-4 rounded-2xl border relative overflow-hidden ${round.isDeleted ? 'opacity-40 grayscale bg-gray-100 border-gray-300' : round.winningTeamIndex === 0 ? 'border-primary/20 bg-primary/5' : 'border-secondary/20 bg-secondary/5'}`}>
+                  <div key={round.id} className={`flex items-center justify-between p-4 rounded-2xl border relative overflow-hidden ${
+                    round.isDeleted ? 'opacity-40 grayscale bg-gray-100 border-gray-300' : 
+                    round.winningTeamIndex === 0 ? 'border-primary/20 bg-primary/5' : 
+                    round.winningTeamIndex === 1 ? 'border-secondary/20 bg-secondary/5' :
+                    round.winningTeamIndex === 2 ? 'border-accent/20 bg-accent/5' :
+                    'border-purple-200 bg-purple-50'
+                  }`}>
                     {round.isDeleted && (
                       <div className="absolute top-0 left-0 bg-red-500 text-white text-[8px] font-bold px-2 py-0.5 uppercase tracking-tighter rounded-br-lg z-10">Eliminado</div>
                     )}
@@ -332,8 +347,8 @@ export default function GameView({ navigate, store }: any) {
                           <MoreHorizontal className="w-3 h-3" />
                         </button>
                       )}
-                      <div className={`text-2xl font-display font-black ${round.isDeleted ? 'text-gray-400 line-through' : round.winningTeamIndex === 0 ? 'text-primary' : 'text-secondary'}`}>
-                        +{round.winningTeamIndex === 0 ? round.pointsTeam1 : round.pointsTeam2}
+                      <div className={`text-2xl font-display font-black ${round.isDeleted ? 'text-gray-400 line-through' : round.winningTeamIndex === 0 ? 'text-primary' : round.winningTeamIndex === 1 ? 'text-secondary' : round.winningTeamIndex === 2 ? 'text-accent' : 'text-purple-500'}`}>
+                        +{round.points}
                       </div>
                     </div>
                   </div>
@@ -344,24 +359,7 @@ export default function GameView({ navigate, store }: any) {
         )}
       </AnimatePresence>
 
-      {/* Action Buttons */}
-      {!isFinished && (
-        <div className="fixed bottom-24 left-0 right-0 flex items-center justify-center pointer-events-none">
-          <motion.button 
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowHistory(true)}
-            className="group flex flex-col items-center gap-1 pointer-events-auto opacity-75"
-          >
-            <div className="w-12 h-12 bg-primary text-white rounded-full shadow-xl flex items-center justify-center border-4 border-bg-page hover:bg-primary/90 transition-all">
-              <HistoryIcon className="w-6 h-6" />
-            </div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-primary drop-shadow-sm bg-bg-page/80 px-2 py-0.5 rounded-full">
-              Bitácora
-            </span>
-          </motion.button>
-        </div>
-      )}
+      {/* Action Buttons removed and moved to history list area */}
 
       {isFinished && !dismissedFinishedModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
@@ -379,20 +377,22 @@ export default function GameView({ navigate, store }: any) {
               <div className="space-y-1">
                 <p className="text-xs uppercase font-bold text-text-dim tracking-widest">El ganador es</p>
                 <p className="text-xl font-bold text-primary">
-                  {match.winnerTeamId === match.teams[0].id ? match.teams[0].name : match.teams[1].name}
+                  {match.teams.find((t: any) => t.id === match.winnerTeamId)?.name || 'Error'}
                 </p>
               </div>
 
               {/* Resultado Final */}
-              <div className="grid grid-cols-2 gap-4 bg-text-main/5 p-4 rounded-2xl border border-border-theme">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase text-text-dim opacity-60 truncate">{match.teams[0].name}</span>
-                  <span className="text-2xl font-display font-black text-primary">{scoreT1}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase text-text-dim opacity-60 truncate">{match.teams[1].name}</span>
-                  <span className="text-2xl font-display font-black text-secondary">{scoreT2}</span>
-                </div>
+              <div className={`grid grid-cols-${match.teams.length} gap-2 bg-text-main/5 p-4 rounded-2xl border border-border-theme`}>
+                {match.teams.map((team: any, idx: number) => (
+                  <div key={team.id} className="flex flex-col">
+                    <span className="text-[8px] font-black uppercase text-text-dim opacity-60 truncate">{team.name}</span>
+                    <span className={`text-xl font-display font-black ${
+                      idx === 0 ? 'text-primary' : 
+                      idx === 1 ? 'text-secondary' :
+                      idx === 2 ? 'text-accent' : 'text-purple-500'
+                    }`}>{teamScores[idx]}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -456,47 +456,91 @@ export default function GameView({ navigate, store }: any) {
   );
 }
 
-function ScoreCard({ name, score, limit, winner, onAdd, isFinished }: any) {
+function ScoreCard({ 
+  name, 
+  score, 
+  limit, 
+  winner, 
+  onAdd, 
+  isFinished, 
+  primary, 
+  secondary, 
+  accent, 
+  purple, 
+  isManyTeams,
+  isEditingName,
+  tempName,
+  onTempNameChange,
+  onStartRename,
+  onRenameConfirm,
+  onRenameCancel
+}: any) {
   const percentage = Math.min((score / limit) * 100, 100);
   
+  const baseColor = primary ? 'primary' : secondary ? 'secondary' : accent ? 'accent' : purple ? 'purple-500' : 'primary';
+
   return (
     <motion.div 
       whileTap={!isFinished ? { scale: 0.95 } : {}}
-      onClick={() => !isFinished && onAdd()}
-      className={`relative p-5 rounded-3xl overflow-hidden transition-all duration-300 border-2 cursor-pointer h-full ${
-        winner ? 'bg-primary border-primary shadow-lg scale-105' : 
-        percentage > 90 ? 'bg-accent/10 border-accent/50' : 
+      onClick={() => !isFinished && !isEditingName && onAdd()}
+      className={`relative ${isManyTeams ? 'p-2 rounded-xl' : 'p-5 rounded-3xl'} overflow-hidden transition-all duration-300 border-2 cursor-pointer h-full ${
+        winner ? `bg-${baseColor} border-${baseColor} shadow-lg scale-105` : 
+        percentage > 90 ? `bg-${baseColor}/10 border-${baseColor}/50` : 
         'bg-bg-card border-border-theme hover:border-primary/50'
       }`}
     >
       <div className="relative z-10 flex flex-col items-center">
-        <div className="flex items-center gap-2 mb-1">
-          <span className={`text-[10px] uppercase tracking-widest font-bold ${winner ? 'text-white/60' : 'text-text-dim'}`}>
-            {name}
-          </span>
-          {!winner && !isFinished && (
-            <div className={`p-1 rounded-full transition-all bg-primary/10 text-primary`}>
-              <Plus className="w-3 h-3" />
+        <div className={`flex items-center justify-center gap-1 mb-0.5 ${isManyTeams ? 'flex-col -space-y-0.5' : 'flex-row'}`}>
+          {isEditingName ? (
+            <input 
+              type="text"
+              value={tempName}
+              autoFocus
+              className="w-full bg-text-main/5 border-b border-primary text-center px-1 outline-none text-[8px] font-black uppercase"
+              onChange={(e) => onTempNameChange(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onBlur={onRenameConfirm}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onRenameConfirm();
+                if (e.key === 'Escape') onRenameCancel();
+              }}
+            />
+          ) : (
+            <span 
+              onClick={(e) => {
+                if(!isFinished) {
+                  e.stopPropagation();
+                  onStartRename();
+                }
+              }}
+              className={`uppercase font-black leading-tight truncate text-center transition-colors hover:text-primary ${isManyTeams ? 'text-[7px]' : 'text-[8px]'} ${winner ? 'text-white/60' : 'text-text-dim'}`}
+            >
+              {name}
+            </span>
+          )}
+          {!winner && !isFinished && !isEditingName && (
+            <div className={`p-0.5 rounded-full transition-all bg-${baseColor}/10 text-${baseColor} ${isManyTeams ? 'hidden' : 'block'}`}>
+              <Plus className="w-2.5 h-2.5" />
             </div>
           )}
         </div>
-        <span className={`text-4xl font-display font-black ${winner ? 'text-white' : 'text-text-main'}`}>
+        <span className={`${isManyTeams ? 'text-lg' : 'text-3xl'} font-display font-black leading-none ${winner ? 'text-white' : 'text-text-main'}`}>
           {score}
         </span>
-        <div className="w-full h-1 bg-text-main/10 rounded-full mt-3 overflow-hidden">
+        <div className="w-full h-0.5 bg-text-main/10 rounded-full mt-1.5 overflow-hidden">
           <motion.div 
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
-            className={`h-full ${winner ? 'bg-white' : percentage > 90 ? 'bg-accent' : 'bg-primary'}`}
+            className={`h-full ${winner ? 'bg-white' : percentage > 90 ? 'bg-accent' : `bg-${baseColor}`}`}
           />
         </div>
       </div>
-      {winner && <Trophy className="absolute top-2 right-2 w-4 h-4 text-white/40" />}
+      {winner && <Trophy className={`absolute ${isManyTeams ? 'top-1 right-1 w-3 h-3' : 'top-2 right-2 w-4 h-4'} text-white/40`} />}
     </motion.div>
   );
 }
 
-function QuickActions({ match, onQuickAdd }: any) {
+function QuickActions({ match, onQuickAdd, isManyTeams }: any) {
   const actions: { type: PlayType, label: string, pts: number }[] = [
     { type: 'Capicúa', label: 'Capicua', pts: match.capicuaPoints || 30 },
     { type: 'Paso de salida', label: 'Salida', pts: match.pasoSalidaPoints || 30 },
@@ -504,7 +548,7 @@ function QuickActions({ match, onQuickAdd }: any) {
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-1 px-1">
+    <div className={`grid ${isManyTeams ? 'grid-cols-1 gap-0.5' : 'grid-cols-3 gap-1'} px-0.5`}>
       {actions.map(action => (
         <button
           key={action.type}
@@ -512,10 +556,10 @@ function QuickActions({ match, onQuickAdd }: any) {
             e.stopPropagation();
             onQuickAdd(action.type, action.pts);
           }}
-          className="flex flex-col items-center justify-center py-1.5 bg-bg-card border border-border-theme rounded-lg hover:border-primary/50 hover:bg-primary/5 active:scale-90 transition-all group"
+          className={`flex ${isManyTeams ? 'flex-row justify-between px-2 h-5' : 'flex-col py-1'} items-center justify-center bg-bg-card border border-border-theme rounded-md hover:border-primary/50 hover:bg-primary/5 active:scale-90 transition-all group`}
         >
-          <span className="text-[7px] font-black uppercase text-text-dim group-hover:text-primary transition-colors">{action.label}</span>
-          <span className="text-[9px] font-black text-primary">+{action.pts}</span>
+          <span className="text-[6px] font-black uppercase text-text-dim group-hover:text-primary transition-colors">{action.label}</span>
+          <span className="text-[8px] font-black text-primary">+{action.pts}</span>
         </button>
       ))}
     </div>
@@ -542,8 +586,8 @@ function RoundEntry({ round, color }: any) {
 
 function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, initialTeamIndex = 0 }: any) {
   const isEditing = !!roundToEdit;
-  const [teamIndex, setTeamIndex] = useState<0 | 1>(roundToEdit ? roundToEdit.winningTeamIndex : initialTeamIndex);
-  const [points, setPoints] = useState<string>(roundToEdit ? (roundToEdit.winningTeamIndex === 0 ? roundToEdit.pointsTeam1 : roundToEdit.pointsTeam2).toString() : '');
+  const [teamIndex, setTeamIndex] = useState<number>(roundToEdit ? roundToEdit.winningTeamIndex : initialTeamIndex);
+  const [points, setPoints] = useState<string>(roundToEdit ? roundToEdit.points.toString() : '');
   const [playType, setPlayType] = useState<PlayType>(roundToEdit ? roundToEdit.playType : 'Dominó');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
@@ -561,15 +605,13 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
     if (isEditing) {
       onUpdate(roundToEdit.id, {
         playType,
-        pointsTeam1: teamIndex === 0 ? finalPoints : 0,
-        pointsTeam2: teamIndex === 1 ? finalPoints : 0,
+        points: finalPoints,
         winningTeamIndex: teamIndex,
       });
     } else {
       onAdd({
         playType,
-        pointsTeam1: teamIndex === 0 ? finalPoints : 0,
-        pointsTeam2: teamIndex === 1 ? finalPoints : 0,
+        points: finalPoints,
         winningTeamIndex: teamIndex,
       });
     }
@@ -648,18 +690,20 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 pb-2">
-          {/* Selector de Equipo */}
           <div className="space-y-2">
             <span className="text-[10px] font-black text-text-dim/60 uppercase tracking-widest pl-1">¿Ganador de mano?</span>
-            <div className="flex gap-2">
+            <div className={`grid ${match.teams.length > 2 ? 'grid-cols-2' : 'grid-cols-2'} gap-2`}>
               {match.teams.map((t: any, idx: number) => (
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => setTeamIndex(idx as 0 | 1)}
-                  className={`flex-1 py-3 px-4 rounded-xl border-2 transition-all font-bold text-sm ${
+                  onClick={() => setTeamIndex(idx)}
+                  className={`py-3 px-2 rounded-xl border-2 transition-all font-bold text-[11px] truncate ${
                     teamIndex === idx 
-                      ? idx === 0 ? 'border-primary bg-primary/10 text-primary' : 'border-secondary bg-secondary/10 text-secondary'
+                      ? idx === 0 ? 'border-primary bg-primary/10 text-primary' : 
+                        idx === 1 ? 'border-secondary bg-secondary/10 text-secondary' :
+                        idx === 2 ? 'border-accent bg-accent/10 text-accent' :
+                        'border-purple-500 bg-purple-50 text-purple-500'
                       : 'border-transparent bg-bg-card text-text-dim opacity-60'
                   }`}
                 >

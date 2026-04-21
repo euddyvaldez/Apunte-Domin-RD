@@ -89,19 +89,20 @@ export function useStore() {
 
   const recalculateMatch = (match: Match): Match => {
     const activeRounds = match.rounds.filter(r => !r.isDeleted);
-    const scoreT1 = activeRounds.reduce((acc, r) => acc + (r.winningTeamIndex === 0 ? r.pointsTeam1 : 0), 0);
-    const scoreT2 = activeRounds.reduce((acc, r) => acc + (r.winningTeamIndex === 1 ? r.pointsTeam2 : 0), 0);
+    
+    const teamScores = match.teams.map((_, index) => {
+      return activeRounds.reduce((acc, r) => acc + (r.winningTeamIndex === index ? r.points : 0), 0);
+    });
 
     let status: 'active' | 'finished' = 'active';
     let winnerId: string | undefined = undefined;
 
-    if (scoreT1 >= match.scoreLimit) {
-      status = 'finished';
-      winnerId = match.teams[0].id;
-    } else if (scoreT2 >= match.scoreLimit) {
-      status = 'finished';
-      winnerId = match.teams[1].id;
-    }
+    teamScores.forEach((score, index) => {
+      if (score >= match.scoreLimit) {
+        status = 'finished';
+        winnerId = match.teams[index].id;
+      }
+    });
 
     return {
       ...match,
@@ -234,6 +235,23 @@ export function useStore() {
     });
   };
 
+  const updateTeamName = (matchId: string, teamIndex: number, newName: string) => {
+    setData(prev => {
+      const matchIndex = prev.matches.findIndex(m => m.id === matchId);
+      if (matchIndex === -1) return prev;
+
+      const updatedMatches = [...prev.matches];
+      const match = { ...updatedMatches[matchIndex] };
+      const updatedTeams = [...match.teams];
+      updatedTeams[teamIndex] = { ...updatedTeams[teamIndex], name: newName };
+      match.teams = updatedTeams;
+      
+      updatedMatches[matchIndex] = match;
+
+      return { ...prev, matches: updatedMatches };
+    });
+  };
+
   const currentMatch = data.matches.find(m => m.id === data.currentMatchId) || null;
 
   return {
@@ -247,6 +265,7 @@ export function useStore() {
     deleteRound,
     deleteMatch,
     updateMatchLimit,
+    updateTeamName,
     updateQuickPointsConfig,
     setCurrentMatch: (id: string | null) => setData(prev => ({ ...prev, currentMatchId: id })),
   };
