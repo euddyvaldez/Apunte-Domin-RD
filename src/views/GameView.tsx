@@ -56,7 +56,11 @@ export default function GameView({ navigate, store }: any) {
   }
 
   const teamScores = match.teams.map((_: any, index: number) => {
-    return match.rounds.reduce((acc: number, r: any) => acc + (r.winningTeamIndex === index && !r.isDeleted ? r.points : 0), 0);
+    return match.rounds.reduce((acc: number, r: any) => {
+      const pts = Number(r.points);
+      const isWinner = r.winningTeamIndex === index && !r.isDeleted && !isNaN(pts);
+      return acc + (isWinner ? pts : 0);
+    }, 0);
   });
 
   const isFinished = match.status === 'finished';

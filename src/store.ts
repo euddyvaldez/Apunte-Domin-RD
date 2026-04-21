@@ -41,7 +41,27 @@ export function useStore() {
       const parsed = JSON.parse(saved);
       // Basic validation to ensure we have the right structure
       if (!parsed || typeof parsed !== 'object') return DEFAULT_DATA;
-      return { ...DEFAULT_DATA, ...parsed };
+      
+      const loadedData = { ...DEFAULT_DATA, ...parsed };
+      
+      // Sanitización y Recalculo on load to fix NaN/Corrupt states
+      if (loadedData.matches && Array.isArray(loadedData.matches)) {
+        loadedData.matches = loadedData.matches.map(m => {
+          // Ensure rounds is an array
+          const rounds = Array.isArray(m.rounds) ? m.rounds : [];
+          // Ensure mandatory fields exist
+          return recalculateMatch({
+            ...m,
+            rounds,
+            scoreLimit: Number(m.scoreLimit) || 100,
+            capicuaPoints: Number(m.capicuaPoints) || 30,
+            pasoSalidaPoints: Number(m.pasoSalidaPoints) || 30,
+            pasoCorridoPoints: Number(m.pasoCorridoPoints) || 30
+          });
+        });
+      }
+
+      return loadedData;
     } catch (e) {
       console.error('Error loading data from localStorage:', e);
       return DEFAULT_DATA;
@@ -88,10 +108,13 @@ export function useStore() {
   };
 
   const recalculateMatch = (match: Match): Match => {
-    const activeRounds = match.rounds.filter(r => !r.isDeleted);
+    const activeRounds = (match.rounds || []).filter(r => !r.isDeleted);
     
     const teamScores = match.teams.map((_, index) => {
-      return activeRounds.reduce((acc, r) => acc + (r.winningTeamIndex === index ? r.points : 0), 0);
+      return activeRounds.reduce((acc, r) => {
+        const pts = Number(r.points);
+        return acc + (r.winningTeamIndex === index && !isNaN(pts) ? pts : 0);
+      }, 0);
     });
 
     let status: 'active' | 'finished' = 'active';
@@ -117,11 +140,13 @@ export function useStore() {
       if (matchIndex === -1) return prev;
 
       const match = prev.matches[matchIndex];
+      const pts = Number(roundData.points);
       const newRound: Round = {
         ...roundData,
+        points: isNaN(pts) ? 0 : pts,
         id: generateUUID(),
         matchId,
-        number: match.rounds.length + 1,
+        number: (match.rounds || []).length + 1,
         timestamp: Date.now(),
       };
 

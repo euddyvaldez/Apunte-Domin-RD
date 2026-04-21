@@ -26,6 +26,12 @@ export default function App() {
   const [showContact, setShowContact] = useState(false);
 
   useEffect(() => {
+    if (store.currentMatch && view === 'home') {
+      setView('game');
+    }
+  }, [store.currentMatch]);
+
+  useEffect(() => {
     if (store.isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
