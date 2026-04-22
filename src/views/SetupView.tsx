@@ -41,11 +41,11 @@ export default function SetupView({ navigate, store }: any) {
       </header>
 
       <div className="space-y-6">
-        {/* Número de Jugadores */}
+        {/* Modalidad de Juego */}
         <section className="bg-bg-card border border-border-theme p-5 rounded-3xl space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Users className="w-5 h-5 text-primary" />
-            <h3 className="font-bold">Número de Participantes</h3>
+            <h3 className="font-bold">Modalidad</h3>
           </div>
           <div className="flex gap-2">
             {[2, 3, 4].map(val => (

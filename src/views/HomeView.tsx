@@ -27,27 +27,34 @@ export default function HomeView({ navigate, store }: any) {
 
       {/* Main Actions */}
       <div className="grid gap-4">
-        {activeMatch ? (
+        {activeMatch && (
           <button 
             onClick={() => navigate('game')}
             className="group relative overflow-hidden bg-primary text-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-between"
           >
-            <div className="relative z-10">
+            <div className="relative z-10 text-left">
               <span className="block text-xs uppercase tracking-widest opacity-80 mb-1">Partida en curso</span>
               <span className="text-xl font-bold font-display">Continuar Juego</span>
             </div>
             <Play className="w-8 h-8 opacity-40 group-hover:scale-125 transition-transform" />
             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
           </button>
-        ) : (
-          <button 
-            onClick={() => navigate('setup')}
-            className="group bg-primary text-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-between"
-          >
-            <span className="text-xl font-bold font-display">Nueva Partida</span>
-            <Plus className="w-8 h-8 opacity-40 group-hover:rotate-90 transition-transform" />
-          </button>
         )}
+
+        <button 
+          onClick={() => navigate('setup')}
+          className={`group p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-between ${
+            activeMatch 
+              ? 'bg-bg-card border border-border-theme text-text-main' 
+              : 'bg-primary text-white'
+          }`}
+        >
+          <div className="text-left">
+            {!activeMatch && <span className="block text-xs uppercase tracking-widest opacity-80 mb-1">Empezar de cero</span>}
+            <span className="text-xl font-bold font-display">Nueva Partida</span>
+          </div>
+          <Plus className={`w-8 h-8 opacity-40 group-hover:rotate-90 transition-transform ${activeMatch ? 'text-primary' : ''}`} />
+        </button>
 
         <button 
           onClick={() => navigate('history')}

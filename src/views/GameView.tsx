@@ -202,10 +202,22 @@ export default function GameView({ navigate, store }: any) {
                 store.setCurrentMatch(null);
                 navigate('home');
               }}
-              className="flex items-center gap-3 p-3 hover:bg-primary/5 rounded-lg text-sm font-bold text-text-dim"
+              className="flex items-center gap-3 p-3 bg-primary/5 hover:bg-primary/10 rounded-lg text-sm font-bold text-primary"
             >
-              <LogOut className="w-4 h-4 text-secondary" />
-              Salir al Inicio (Guardar)
+              <LogOut className="w-4 h-4" />
+              Guardar y Salir (Se puede retomar)
+            </button>
+            <button 
+              onClick={() => {
+                if(confirm('¿Quieres cerrar esta partida y volver al inicio?')) {
+                  store.setCurrentMatch(null);
+                  navigate('home');
+                }
+              }}
+              className="flex items-center gap-3 p-3 hover:bg-secondary/5 rounded-lg text-sm font-bold text-text-dim"
+            >
+              <X className="w-4 h-4" />
+              Cerrar Partida (Sin borrar)
             </button>
             <button 
               onClick={() => {

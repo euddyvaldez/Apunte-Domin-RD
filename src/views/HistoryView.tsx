@@ -8,7 +8,7 @@ import { motion } from 'motion/react';
 import { Trophy, Calendar, Users, Trash2, ArrowRight } from 'lucide-react';
 
 export default function HistoryView({ navigate, store }: any) {
-  const matches = store.matches || [];
+  const matches = [...(store.matches || [])].sort((a, b) => b.date - a.date);
 
   return (
     <div className="p-6 space-y-6">
@@ -25,31 +25,35 @@ export default function HistoryView({ navigate, store }: any) {
       ) : (
         <div className="space-y-4">
           {matches.map((m: any) => {
-            const scoreT1 = m.rounds.reduce((acc: number, r: any) => acc + (r.winningTeamIndex === 0 ? r.pointsTeam1 : 0), 0);
-            const scoreT2 = m.rounds.reduce((acc: number, r: any) => acc + (r.winningTeamIndex === 1 ? r.pointsTeam2 : 0), 0);
             const dateStr = new Date(m.date).toLocaleDateString();
 
             return (
               <motion.div 
                 key={m.id}
                 layout
-                className="bg-bg-card border border-border-theme p-5 rounded-2xl space-y-4 relative overflow-hidden group"
+                className="bg-bg-card border border-border-theme p-4 rounded-2xl space-y-4 relative overflow-hidden group"
               >
                 <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <span className="text-[10px] bg-secondary/10 text-secondary px-2 py-1 rounded-full font-bold uppercase tracking-wider">
+                  <div className="space-y-2 flex-1">
+                    <span className="text-[9px] bg-secondary/10 text-secondary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
                       {dateStr}
                     </span>
-                    <div className="flex items-center gap-3">
-                      <div className="text-center">
-                        <span className="block text-xs text-text-dim">{m.teams[0].name}</span>
-                        <span className="text-2xl font-display font-black">{scoreT1}</span>
-                      </div>
-                      <span className="text-text-dim font-bold">vs</span>
-                      <div className="text-center">
-                        <span className="block text-xs text-text-dim">{m.teams[1].name}</span>
-                        <span className="text-2xl font-display font-black">{scoreT2}</span>
-                      </div>
+                    <div className={`grid ${m.teams.length === 4 ? 'grid-cols-4' : m.teams.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
+                      {m.teams.map((team: any, idx: number) => {
+                        const score = m.rounds.reduce((acc: number, r: any) => {
+                          const pts = Number(r.points);
+                          return acc + (r.winningTeamIndex === idx && !r.isDeleted && !isNaN(pts) ? pts : 0);
+                        }, 0);
+                        
+                        return (
+                          <div key={team.id} className="text-center overflow-hidden">
+                            <span className="block text-[8px] text-text-dim truncate uppercase font-bold">{team.name}</span>
+                            <span className={`text-xl font-display font-black ${score >= m.scoreLimit ? 'text-primary' : 'text-text-main'}`}>
+                              {score}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
