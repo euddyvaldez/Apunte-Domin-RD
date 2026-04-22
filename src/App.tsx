@@ -25,11 +25,14 @@ export default function App() {
   const [view, setView] = useState<'home' | 'setup' | 'game' | 'history'>('home');
   const [showContact, setShowContact] = useState(false);
 
+  const [hasCheckedResume, setHasCheckedResume] = useState(false);
+
   useEffect(() => {
-    if (store.currentMatch && view === 'home') {
+    if (!hasCheckedResume && store.currentMatch && view === 'home') {
       setView('game');
     }
-  }, [store.currentMatch]);
+    setHasCheckedResume(true);
+  }, [store.currentMatch, hasCheckedResume]);
 
   useEffect(() => {
     if (store.isDarkMode) {

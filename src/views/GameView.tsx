@@ -199,25 +199,26 @@ export default function GameView({ navigate, store }: any) {
           >
             <button 
               onClick={() => {
-                store.setCurrentMatch(null);
+                setShowOptions(false);
                 navigate('home');
               }}
               className="flex items-center gap-3 p-3 bg-primary/5 hover:bg-primary/10 rounded-lg text-sm font-bold text-primary"
             >
               <LogOut className="w-4 h-4" />
-              Guardar y Salir (Se puede retomar)
+              Guardar y Salir (Se mantiene activa)
             </button>
             <button 
               onClick={() => {
-                if(confirm('¿Quieres cerrar esta partida y volver al inicio?')) {
+                if(confirm('¿Quieres cerrar esta partida activa? Se guardará en el historial y podrás retomarla luego.')) {
                   store.setCurrentMatch(null);
+                  setShowOptions(false);
                   navigate('home');
                 }
               }}
               className="flex items-center gap-3 p-3 hover:bg-secondary/5 rounded-lg text-sm font-bold text-text-dim"
             >
               <X className="w-4 h-4" />
-              Cerrar Partida (Sin borrar)
+              Cerrar Partida (Quitar de modo activo)
             </button>
             <button 
               onClick={() => {
