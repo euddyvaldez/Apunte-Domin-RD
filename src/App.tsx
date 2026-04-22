@@ -46,8 +46,35 @@ export default function App() {
     return <div className="flex items-center justify-center h-screen">Cargando aplicación...</div>;
   }
 
-  // Handle routing
-  const navigate = (newView: 'home' | 'setup' | 'game' | 'history') => setView(newView);
+  // Handle routing with Browser History API synchronization
+  const navigate = (newView: 'home' | 'setup' | 'game' | 'history', replace: boolean = false) => {
+    if (view === newView) return;
+    
+    const state = { view: newView };
+    if (replace) {
+      window.history.replaceState(state, '', '');
+    } else {
+      window.history.pushState(state, '', '');
+    }
+    setView(newView);
+  };
+
+  // Sync state with back/forward button
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && e.state.view) {
+        setView(e.state.view);
+      } else {
+        setView('home');
+      }
+    };
+    
+    // Initialize history state on load
+    window.history.replaceState({ view }, '', '');
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   return (
     <div className={`min-h-screen transition-all duration-500 theme-${store.theme}`}>

@@ -23,8 +23,12 @@ import {
   Star,
   Shield,
   Circle,
-  Trash2
+  Trash2,
+  Pencil,
+  Info
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import { triggerHaptic } from '../lib/haptics';
 import { calculateRoundPoints } from '../store';
 import { PlayType } from '../types';
 
@@ -49,6 +53,7 @@ export default function GameView({ navigate, store }: any) {
   const [dismissedFinishedModal, setDismissedFinishedModal] = useState(false);
   const [editingTeamIdx, setEditingTeamIdx] = useState<number | null>(null);
   const [tempTeamName, setTempTeamName] = useState('');
+  const [showOnboarding, setShowOnboarding] = useState(!store.onboardingSeen);
 
   if (!match) {
     useEffect(() => navigate('home'), []);
@@ -65,6 +70,19 @@ export default function GameView({ navigate, store }: any) {
 
   const isFinished = match.status === 'finished';
 
+  // Trigger celebration on finish
+  useEffect(() => {
+    if (isFinished && !dismissedFinishedModal) {
+      triggerHaptic([50, 30, 50]);
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+      });
+    }
+  }, [isFinished]);
+
   // Reset dismissed state if match becomes active again
   useEffect(() => {
     if (!isFinished) {
@@ -76,7 +94,40 @@ export default function GameView({ navigate, store }: any) {
                         match.teams.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
   return (
-    <div className="flex flex-col h-full bg-bg-page select-none">
+    <div className="flex flex-col h-full bg-bg-page select-none overflow-x-hidden">
+      {/* Onboarding Tooltip */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed top-24 left-4 right-4 z-[60] flex justify-center pointer-events-none"
+          >
+            <div className="bg-primary text-white p-4 rounded-3xl shadow-2xl flex items-start gap-3 pointer-events-auto max-w-sm border-2 border-white/20">
+              <div className="p-2 bg-white/20 rounded-xl">
+                <Info className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold leading-tight">¿Cómo anotar puntos?</p>
+                <p className="text-[10px] opacity-80 mt-1">Toca un equipo para abrir el menú o usa los botones rápidos (+30). Toca el nombre para editarlo.</p>
+                <button 
+                  onClick={() => {
+                    setShowOnboarding(false);
+                    store.setOnboardingSeen(true);
+                  }}
+                  className="mt-3 text-[10px] bg-white text-primary px-3 py-1.5 rounded-full font-black uppercase tracking-wider shadow-md active:scale-95 transition-all"
+                >
+                  Entendido
+                </button>
+              </div>
+            </div>
+            {/* Pointer arrow */}
+            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-primary rotate-45 border-r border-b border-white/20" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Scoreboard */}
       <div className="p-3 pb-2 flex flex-col gap-2 sticky top-0 bg-bg-page/80 backdrop-blur-md z-40 border-b border-border-theme">
         <div className="flex justify-center items-center gap-2">
@@ -118,9 +169,10 @@ export default function GameView({ navigate, store }: any) {
                 setTempMeta(match.scoreLimit.toString());
                 setIsEditingMeta(true);
               }}
-              className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-border-theme/50 transition-all text-text-dim/60 bg-text-main/5 hover:bg-primary/5 hover:border-primary/30"
+              className="group flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-border-theme/50 transition-all text-text-dim/60 bg-text-main/5 hover:bg-primary/5 hover:border-primary/30"
             >
-              Meta: {match.scoreLimit}
+              <span>Meta: {match.scoreLimit}</span>
+              <Pencil className="w-2.5 h-2.5 opacity-40 group-hover:opacity-100 group-hover:text-primary transition-all" />
             </button>
           )}
         </div>
@@ -133,6 +185,7 @@ export default function GameView({ navigate, store }: any) {
                 score={teamScores[idx]} 
                 limit={match.scoreLimit} 
                 isManyTeams={match.teams.length >= 3}
+                isFourTeams={match.teams.length === 4}
                 primary={idx === 0}
                 secondary={idx === 1}
                 accent={idx === 2}
@@ -161,6 +214,7 @@ export default function GameView({ navigate, store }: any) {
               {!isFinished && (
                 <QuickActions 
                   match={match} 
+                  teamIdx={idx}
                   isManyTeams={match.teams.length >= 3}
                   onQuickAdd={(type: any, pts: number) => {
                     store.addRound(match.id, {
@@ -399,7 +453,7 @@ export default function GameView({ navigate, store }: any) {
               </div>
 
               {/* Resultado Final */}
-              <div className={`grid grid-cols-${match.teams.length} gap-2 bg-text-main/5 p-4 rounded-2xl border border-border-theme`}>
+              <div className={`grid ${match.teams.length === 4 ? 'grid-cols-4' : match.teams.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2 bg-text-main/5 p-4 rounded-2xl border border-border-theme`}>
                 {match.teams.map((team: any, idx: number) => (
                   <div key={team.id} className="flex flex-col">
                     <span className="text-[8px] font-black uppercase text-text-dim opacity-60 truncate">{team.name}</span>
@@ -485,6 +539,7 @@ function ScoreCard({
   accent, 
   purple, 
   isManyTeams,
+  isFourTeams,
   isEditingName,
   tempName,
   onTempNameChange,
@@ -494,26 +549,44 @@ function ScoreCard({
 }: any) {
   const percentage = Math.min((score / limit) * 100, 100);
   
-  const baseColor = primary ? 'primary' : secondary ? 'secondary' : accent ? 'accent' : purple ? 'purple-500' : 'primary';
+  const colorClasses = {
+    bg: winner ? (primary ? 'bg-primary' : secondary ? 'bg-secondary' : accent ? 'bg-accent' : 'bg-purple-500') :
+        percentage > 90 ? (primary ? 'bg-primary/10' : secondary ? 'bg-secondary/10' : accent ? 'bg-accent/10' : 'bg-purple-500/10') : 'bg-bg-card',
+    border: winner ? (primary ? 'border-primary' : secondary ? 'border-secondary' : accent ? 'border-accent' : 'border-purple-500') :
+            percentage > 90 ? (primary ? 'border-primary/50' : secondary ? 'border-secondary/50' : accent ? 'border-accent/50' : 'border-purple-500/50') : 'border-border-theme',
+    text: winner ? 'text-white' : 'text-text-main',
+    nameText: winner ? 'text-white/60' : 'text-text-dim',
+    plusIconBg: primary ? 'bg-primary/10' : secondary ? 'bg-secondary/10' : accent ? 'bg-accent/10' : 'bg-purple-500/10',
+    plusIconText: primary ? 'text-primary' : secondary ? 'text-secondary' : accent ? 'text-accent' : 'text-purple-500',
+    progressBar: winner ? 'bg-white' : percentage > 90 ? 'bg-accent' : (primary ? 'bg-primary' : secondary ? 'bg-secondary' : accent ? 'bg-accent' : 'bg-purple-500')
+  };
 
   return (
     <motion.div 
-      whileTap={!isFinished ? { scale: 0.95 } : {}}
-      onClick={() => !isFinished && !isEditingName && onAdd()}
-      className={`relative ${isManyTeams ? 'p-2 rounded-xl' : 'p-5 rounded-3xl'} overflow-hidden transition-all duration-300 border-2 cursor-pointer h-full ${
-        winner ? `bg-${baseColor} border-${baseColor} shadow-lg scale-105` : 
-        percentage > 90 ? `bg-${baseColor}/10 border-${baseColor}/50` : 
-        'bg-bg-card border-border-theme hover:border-primary/50'
+      whileTap={!isFinished ? { scale: 0.98 } : {}}
+      onClick={(e) => {
+        if (!isFinished && !isEditingName) {
+          triggerHaptic(10);
+          onAdd();
+        }
+      }}
+      className={`relative ${
+        isFourTeams ? 'p-1.5 rounded-xl' : 
+        isManyTeams ? 'p-3 rounded-2xl' : 'p-5 rounded-3xl'
+      } overflow-hidden transition-all duration-300 border-2 cursor-pointer h-full shadow-sm active:shadow-inner ${
+        winner ? `${colorClasses.bg} ${colorClasses.border} shadow-lg scale-[1.02]` : 
+        percentage > 90 ? `${colorClasses.bg} ${colorClasses.border}` : 
+        'bg-bg-card border-border-theme hover:border-primary/30'
       }`}
     >
       <div className="relative z-10 flex flex-col items-center">
-        <div className={`flex items-center justify-center gap-1 mb-0.5 ${isManyTeams ? 'flex-col -space-y-0.5' : 'flex-row'}`}>
+        <div className={`flex items-center justify-center gap-1 mb-1 ${isManyTeams ? 'flex-col -space-y-0.5' : 'flex-row'}`}>
           {isEditingName ? (
             <input 
               type="text"
               value={tempName}
               autoFocus
-              className="w-full bg-text-main/5 border-b border-primary text-center px-1 outline-none text-[8px] font-black uppercase"
+              className="w-full bg-text-main/5 border-b border-primary text-center px-1 outline-none text-[9px] font-black uppercase"
               onChange={(e) => onTempNameChange(e.target.value)}
               onClick={(e) => e.stopPropagation()}
               onBlur={onRenameConfirm}
@@ -523,32 +596,40 @@ function ScoreCard({
               }}
             />
           ) : (
-            <span 
+            <div 
+              className="flex items-center gap-1 group/name"
               onClick={(e) => {
                 if(!isFinished) {
                   e.stopPropagation();
                   onStartRename();
                 }
               }}
-              className={`uppercase font-black leading-tight truncate text-center transition-colors hover:text-primary ${isManyTeams ? 'text-[7px]' : 'text-[8px]'} ${winner ? 'text-white/60' : 'text-text-dim'}`}
             >
-              {name}
-            </span>
+              <span className={`uppercase font-black leading-tight truncate text-center transition-colors group-hover/name:text-primary ${
+                isFourTeams ? 'text-[7px]' : isManyTeams ? 'text-[8px]' : 'text-[9px]'
+              } ${colorClasses.nameText}`}>
+                {name}
+              </span>
+              {!isFinished && <Pencil className="w-1.5 h-1.5 opacity-0 group-hover/name:opacity-40 transition-opacity" />}
+            </div>
           )}
           {!winner && !isFinished && !isEditingName && (
-            <div className={`p-0.5 rounded-full transition-all bg-${baseColor}/10 text-${baseColor} ${isManyTeams ? 'hidden' : 'block'}`}>
+            <div className={`p-0.5 rounded-full transition-all ${colorClasses.plusIconBg} ${colorClasses.plusIconText} ${isManyTeams ? 'hidden' : 'block'}`}>
               <Plus className="w-2.5 h-2.5" />
             </div>
           )}
         </div>
-        <span className={`${isManyTeams ? 'text-lg' : 'text-3xl'} font-display font-black leading-none ${winner ? 'text-white' : 'text-text-main'}`}>
+        <span className={`${
+          isFourTeams ? 'text-xl' : 
+          isManyTeams ? 'text-2xl' : 'text-4xl'
+        } font-display font-black leading-none tracking-tighter ${colorClasses.text}`}>
           {score}
         </span>
         <div className="w-full h-0.5 bg-text-main/10 rounded-full mt-1.5 overflow-hidden">
           <motion.div 
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
-            className={`h-full ${winner ? 'bg-white' : percentage > 90 ? 'bg-accent' : `bg-${baseColor}`}`}
+            className={`h-full ${colorClasses.progressBar}`}
           />
         </div>
       </div>
@@ -557,12 +638,20 @@ function ScoreCard({
   );
 }
 
-function QuickActions({ match, onQuickAdd, isManyTeams }: any) {
+function QuickActions({ match, onQuickAdd, isManyTeams, teamIdx }: any) {
   const actions: { type: PlayType, label: string, pts: number }[] = [
     { type: 'Capicúa', label: 'Capicua', pts: match.capicuaPoints || 30 },
     { type: 'Paso de salida', label: 'Salida', pts: match.pasoSalidaPoints || 30 },
     { type: 'Pase Corrido', label: 'Corrido', pts: match.pasoCorridoPoints || 30 }
   ];
+
+  const colorClass = teamIdx === 0 ? 'text-primary' : 
+                     teamIdx === 1 ? 'text-secondary' :
+                     teamIdx === 2 ? 'text-accent' : 'text-purple-500';
+
+  const hoverBorderClass = teamIdx === 0 ? 'hover:border-primary/50 hover:bg-primary/5' : 
+                           teamIdx === 1 ? 'hover:border-secondary/50 hover:bg-secondary/5' :
+                           teamIdx === 2 ? 'hover:border-accent/50 hover:bg-accent/5' : 'hover:border-purple-500/50 hover:bg-purple-500/5';
 
   return (
     <div className={`grid ${isManyTeams ? 'grid-cols-1 gap-0.5' : 'grid-cols-3 gap-1'} px-0.5`}>
@@ -571,12 +660,13 @@ function QuickActions({ match, onQuickAdd, isManyTeams }: any) {
           key={action.type}
           onClick={(e) => {
             e.stopPropagation();
+            triggerHaptic(15);
             onQuickAdd(action.type, action.pts);
           }}
-          className={`flex ${isManyTeams ? 'flex-row justify-between px-2 h-5' : 'flex-col py-1'} items-center justify-center bg-bg-card border border-border-theme rounded-md hover:border-primary/50 hover:bg-primary/5 active:scale-90 transition-all group`}
+          className={`flex ${isManyTeams ? 'flex-row justify-between px-2 h-5' : 'flex-col py-1'} items-center justify-center bg-bg-card border border-border-theme rounded-md ${hoverBorderClass} active:scale-90 transition-all group`}
         >
           <span className="text-[6px] font-black uppercase text-text-dim group-hover:text-primary transition-colors">{action.label}</span>
-          <span className="text-[8px] font-black text-primary">+{action.pts}</span>
+          <span className={`text-[8px] font-black ${colorClass}`}>+{action.pts}</span>
         </button>
       ))}
     </div>
@@ -616,8 +706,13 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const pts = parseInt(points) || 0;
-    const finalPoints = calculateRoundPoints(pts, playType);
+    triggerHaptic(30);
+    const rawPts = parseInt(points) || 0;
+    
+    // Defensive Logic: Sanitize input (max 500 for domino)
+    const sanitizedRawPts = Math.max(0, Math.min(rawPts, 500));
+    
+    const finalPoints = calculateRoundPoints(sanitizedRawPts, playType);
     
     if (isEditing) {
       onUpdate(roundToEdit.id, {
@@ -654,7 +749,15 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
           stiffness: 300,
           mass: 0.8
         }}
-        className="relative w-full max-w-md bg-bg-page rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl space-y-5"
+        drag="y"
+        dragConstraints={{ top: 0 }}
+        dragElastic={0.4}
+        onDragEnd={(e, info) => {
+          if (info.offset.y > 100) {
+            onClose();
+          }
+        }}
+        className="relative w-full max-w-md bg-bg-page rounded-t-[2.5rem] sm:rounded-[2rem] p-6 shadow-2xl space-y-5 cursor-grab active:cursor-grabbing"
       >
         <div className="w-10 h-1 bg-border-theme/50 rounded-full mx-auto" />
         
@@ -709,7 +812,7 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
         <form onSubmit={handleSubmit} className="space-y-4 pb-2">
           <div className="space-y-2">
             <span className="text-[10px] font-black text-text-dim/60 uppercase tracking-widest pl-1">¿Ganador de mano?</span>
-            <div className={`grid ${match.teams.length > 2 ? 'grid-cols-2' : 'grid-cols-2'} gap-2`}>
+            <div className={`grid ${match.teams.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
               {match.teams.map((t: any, idx: number) => (
                 <button
                   key={t.id}

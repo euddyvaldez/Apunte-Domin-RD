@@ -14,6 +14,7 @@ interface AppData {
   theme: ThemeType;
   isDarkMode: boolean;
   currentMatchId: string | null;
+  onboardingSeen: boolean;
 }
 
 const DEFAULT_DATA: AppData = {
@@ -22,6 +23,7 @@ const DEFAULT_DATA: AppData = {
   theme: 'minimalist',
   isDarkMode: false,
   currentMatchId: null,
+  onboardingSeen: false,
 };
 
 const recalculateMatch = (match: Match): Match => {
@@ -105,8 +107,28 @@ export function useStore() {
     }
   }, [data]);
 
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setData(prev => ({ ...prev, ...parsed }));
+        } catch (err) {
+          console.error("Sync error:", err);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   const setTheme = (theme: ThemeType) => setData(prev => ({ ...prev, theme }));
   const toggleDarkMode = () => setData(prev => ({ ...prev, isDarkMode: !prev.isDarkMode }));
+
+  const sanitizePoints = (pts: number): number => {
+    if (isNaN(pts)) return 0;
+    return Math.max(0, Math.min(pts, 1000)); // Límite lógico de 1000 puntos por mano
+  };
 
   const startNewMatch = (
     teams: Team[], 
@@ -120,10 +142,10 @@ export function useStore() {
       date: Date.now(),
       teams,
       rounds: [],
-      scoreLimit,
-      capicuaPoints: capicua,
-      pasoSalidaPoints: pasoSalida,
-      pasoCorridoPoints: pasoCorrido,
+      scoreLimit: Math.max(10, Math.min(scoreLimit, 10000)),
+      capicuaPoints: sanitizePoints(capicua),
+      pasoSalidaPoints: sanitizePoints(pasoSalida),
+      pasoCorridoPoints: sanitizePoints(pasoCorrido),
       status: 'active',
     };
     setData(prev => ({
@@ -293,6 +315,7 @@ export function useStore() {
     updateTeamName,
     updateQuickPointsConfig,
     setCurrentMatch: (id: string | null) => setData(prev => ({ ...prev, currentMatchId: id })),
+    setOnboardingSeen: (val: boolean) => setData(prev => ({ ...prev, onboardingSeen: val })),
   };
 }
 
