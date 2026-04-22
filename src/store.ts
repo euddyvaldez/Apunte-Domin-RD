@@ -24,6 +24,33 @@ const DEFAULT_DATA: AppData = {
   currentMatchId: null,
 };
 
+const recalculateMatch = (match: Match): Match => {
+  const activeRounds = (match.rounds || []).filter(r => !r.isDeleted);
+  
+  const teamScores = match.teams.map((_, index) => {
+    return activeRounds.reduce((acc, r) => {
+      const pts = Number(r.points);
+      return acc + (r.winningTeamIndex === index && !isNaN(pts) ? pts : 0);
+    }, 0);
+  });
+
+  let status: 'active' | 'finished' = 'active';
+  let winnerId: string | undefined = undefined;
+
+  teamScores.forEach((score, index) => {
+    if (score >= match.scoreLimit) {
+      status = 'finished';
+      winnerId = match.teams[index].id;
+    }
+  });
+
+  return {
+    ...match,
+    status,
+    winnerTeamId: winnerId,
+  };
+};
+
 // Polyfill/Fallback for crypto.randomUUID if not available (non-HTTPS or old browsers)
 export const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -105,33 +132,6 @@ export function useStore() {
       currentMatchId: newMatch.id,
     }));
     return newMatch;
-  };
-
-  const recalculateMatch = (match: Match): Match => {
-    const activeRounds = (match.rounds || []).filter(r => !r.isDeleted);
-    
-    const teamScores = match.teams.map((_, index) => {
-      return activeRounds.reduce((acc, r) => {
-        const pts = Number(r.points);
-        return acc + (r.winningTeamIndex === index && !isNaN(pts) ? pts : 0);
-      }, 0);
-    });
-
-    let status: 'active' | 'finished' = 'active';
-    let winnerId: string | undefined = undefined;
-
-    teamScores.forEach((score, index) => {
-      if (score >= match.scoreLimit) {
-        status = 'finished';
-        winnerId = match.teams[index].id;
-      }
-    });
-
-    return {
-      ...match,
-      status,
-      winnerTeamId: winnerId,
-    };
   };
 
   const addRound = (matchId: string, roundData: Omit<Round, 'id' | 'timestamp' | 'number' | 'matchId'>) => {
