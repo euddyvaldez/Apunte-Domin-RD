@@ -26,6 +26,8 @@ const DEFAULT_DATA: AppData = {
   onboardingSeen: false,
 };
 
+const isRegularRound = (type: PlayType) => ['Dominó', 'Tranque', 'Otro'].includes(type);
+
 const recalculateMatch = (match: Match): Match => {
   const activeRounds = (match.rounds || []).filter(r => !r.isDeleted);
   
@@ -34,6 +36,17 @@ const recalculateMatch = (match: Match): Match => {
       const pts = Number(r.points);
       return acc + (r.winningTeamIndex === index && !isNaN(pts) ? pts : 0);
     }, 0);
+  });
+
+  // Re-number rounds: only regular rounds get a number, in sequence
+  let regularCount = 0;
+  const updatedRounds = (match.rounds || []).map(r => {
+    if (r.isDeleted) return { ...r, number: 0 };
+    if (isRegularRound(r.playType)) {
+      regularCount++;
+      return { ...r, number: regularCount };
+    }
+    return { ...r, number: 0 };
   });
 
   let status: 'active' | 'finished' = 'active';
@@ -48,6 +61,7 @@ const recalculateMatch = (match: Match): Match => {
 
   return {
     ...match,
+    rounds: updatedRounds,
     status,
     winnerTeamId: winnerId,
   };
@@ -156,6 +170,8 @@ export function useStore() {
     return newMatch;
   };
 
+  const isRegularRound = (type: PlayType) => ['Dominó', 'Tranque', 'Otro'].includes(type);
+
   const addRound = (matchId: string, roundData: Omit<Round, 'id' | 'timestamp' | 'number' | 'matchId'>) => {
     setData(prev => {
       const matchIndex = prev.matches.findIndex(m => m.id === matchId);
@@ -163,12 +179,13 @@ export function useStore() {
 
       const match = prev.matches[matchIndex];
       const pts = Number(roundData.points);
+      
       const newRound: Round = {
         ...roundData,
         points: isNaN(pts) ? 0 : pts,
         id: generateUUID(),
         matchId,
-        number: (match.rounds || []).length + 1,
+        number: 0, // Will be recalculated in recalculateMatch
         timestamp: Date.now(),
       };
 

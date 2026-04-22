@@ -402,7 +402,9 @@ export default function GameView({ navigate, store }: any) {
                       <div className="absolute top-0 left-0 bg-yellow-500 text-white text-[8px] font-bold px-2 py-0.5 uppercase tracking-tighter rounded-br-lg z-10">Editado</div>
                     )}
                     <div className="flex flex-col">
-                      <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">Ronda #{round.number}</span>
+                      {round.number > 0 && (
+                        <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">Ronda #{round.number}</span>
+                      )}
                       <span className="font-bold">{match.teams[round.winningTeamIndex].name}</span>
                       <span className="text-xs text-text-dim italic">{round.playType}</span>
                     </div>
@@ -762,9 +764,21 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
         <div className="w-10 h-1 bg-border-theme/50 rounded-full mx-auto" />
         
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-display font-bold text-text-main">
-            {isEditing ? 'Editar Mano' : 'Anotar Puntos'}
-          </h3>
+          <div className="flex flex-col">
+            <h3 className="text-xl font-display font-bold text-text-main">
+              {isEditing ? 'Editar Mano' : 'Anotar Puntos'}
+            </h3>
+            {isEditing && roundToEdit.number > 0 && (
+              <span className="text-[10px] font-bold text-text-dim/60 uppercase tracking-widest">
+                Ronda #{roundToEdit.number}
+              </span>
+            )}
+            {isEditing && roundToEdit.number === 0 && (
+              <span className="text-[10px] font-bold text-text-dim/60 uppercase tracking-widest">
+                Apunte rápido
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {isEditing && !roundToEdit.isDeleted && (
               <div className="flex items-center">
