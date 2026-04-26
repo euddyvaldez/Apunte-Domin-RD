@@ -99,9 +99,14 @@ export default function GameView({ navigate, store }: any) {
   return (
     <div className="flex flex-col h-full bg-bg-page select-none overflow-x-hidden pb-16">
       {/* Scoreboard */}
-      <div className="p-3 pb-2 flex flex-col gap-2 sticky top-0 bg-bg-page/80 backdrop-blur-md z-40 border-b border-border-theme">
-        <div className="flex justify-center items-center gap-2">
-          {isEditingMeta ? (
+      <div className="p-4 pb-2 space-y-4 sticky top-0 bg-bg-page/90 backdrop-blur-xl z-40 border-b-2 border-border-theme">
+        <div className="flex justify-between items-center bg-bg-main p-2 rounded-2xl border border-border-theme/50 shadow-inner">
+           <div className="flex items-center gap-2 pl-2">
+              <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-dim/60">En Mesa</span>
+           </div>
+           
+           {isEditingMeta ? (
             <div className="flex items-center gap-2">
               <input 
                 type="number"
@@ -113,9 +118,8 @@ export default function GameView({ navigate, store }: any) {
                   if (!isNaN(val) && val > 0) store.updateMatchLimit(match.id, val);
                   setIsEditingMeta(false);
                 }}
-                className="w-16 text-[10px] font-black text-center bg-bg-card border border-primary/50 rounded-full py-0.5 outline-none"
+                className="w-20 text-xs font-black text-center bg-white border-2 border-primary rounded-xl py-1 outline-none shadow-lg"
               />
-              <span className="text-[7px] font-bold text-primary uppercase">Nueva Meta</span>
             </div>
           ) : (
             <button 
@@ -123,47 +127,17 @@ export default function GameView({ navigate, store }: any) {
                 setTempMeta(match.scoreLimit.toString());
                 setIsEditingMeta(true);
               }}
-              className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-border-theme/50 transition-all text-text-dim/60 bg-text-main/5"
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border-b-4 border-primary bg-primary text-white shadow-lg active:border-b-0 active:translate-y-0.5 transition-all"
             >
-              <span>Meta: {match.scoreLimit}</span>
-              <Pencil className="w-2.5 h-2.5 opacity-40" />
+              <Target className="w-3 h-3" />
+              <span>{match.scoreLimit} PTS</span>
             </button>
           )}
         </div>
 
-        <div className={`grid ${gridColsClass} gap-2`}>
+        <div className={`grid ${gridColsClass} gap-3`}>
           {match.teams.map((team: any, idx: number) => (
             <div key={team.id} className="flex flex-col gap-2 min-w-0">
-              {/* Team Label & Edits */}
-              <div className="flex items-center justify-center px-1 h-6">
-                <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-center">
-                  {editingTeamId === team.id ? (
-                    <input
-                      autoFocus
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onBlur={saveTeamName}
-                      onKeyDown={(e) => e.key === 'Enter' && saveTeamName()}
-                      className="text-[10px] font-black uppercase bg-primary/5 border border-primary/20 outline-none rounded px-2 w-full text-primary"
-                    />
-                  ) : (
-                    <div className="flex items-center gap-1 min-w-0">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-text-dim/60 truncate">
-                        {team.name}
-                      </span>
-                      {!isFinished && (
-                        <button 
-                          onClick={() => handleEditTeamName(team)}
-                          className="p-1 opacity-20 hover:opacity-100 hover:text-primary transition-all flex-shrink-0"
-                        >
-                          <Pencil className="w-2.5 h-2.5" />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
               <ScoreCard 
                 score={teamScores[idx]} 
                 limit={match.scoreLimit} 
@@ -179,6 +153,27 @@ export default function GameView({ navigate, store }: any) {
                   setShowAddPoints(true);
                 }}
               />
+              
+              <div className="text-center px-1">
+                 {editingTeamId === team.id ? (
+                    <input
+                      autoFocus
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onBlur={saveTeamName}
+                      onKeyDown={(e) => e.key === 'Enter' && saveTeamName()}
+                      className="text-[10px] font-black uppercase bg-white border-2 border-primary outline-none rounded-lg px-2 w-full text-center py-1 shadow-sm"
+                    />
+                  ) : (
+                    <button 
+                      onClick={() => !isFinished && handleEditTeamName(team)}
+                      className="text-[9px] font-black uppercase tracking-widest text-text-main/70 truncate w-full hover:text-primary transition-colors py-1"
+                    >
+                      {team.name}
+                    </button>
+                  )}
+              </div>
+
               {!isFinished && (
                 <QuickActions 
                   match={match} 
@@ -328,10 +323,10 @@ export default function GameView({ navigate, store }: any) {
       <div className="fixed bottom-16 left-0 right-0 z-40 flex justify-center pointer-events-none">
         <button
           onClick={() => setShowHistory(true)}
-          className="pointer-events-auto bg-bg-card border-x border-t border-border-theme rounded-t-2xl px-12 py-2 shadow-lg flex flex-col items-center gap-1 group"
+          className="pointer-events-auto bg-primary text-white rounded-t-[2.5rem] px-14 py-3 shadow-2xl flex flex-col items-center gap-1 group border-x-4 border-t-4 border-white active:scale-95 transition-all"
         >
-          <div className="w-10 h-1 bg-border-theme rounded-full" />
-          <span className="text-[9px] font-black uppercase tracking-widest text-text-dim">Bitácora</span>
+          <div className="w-10 h-1 bg-white/40 rounded-full" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em]">Bitácora</span>
         </button>
       </div>
 
@@ -393,53 +388,55 @@ export default function GameView({ navigate, store }: any) {
 
 function ScoreCard({ score, limit, primary, secondary, accent, winner, onAdd, isFinished, wins }: any) {
   const percent = Math.min((score / limit) * 100, 100);
-  const colorClass = primary ? 'border-primary/40 shadow-primary/5' : 
-                     secondary ? 'border-secondary/40 shadow-secondary/5' : 
-                     accent ? 'border-accent/40 shadow-accent/5' : 'border-purple-500/40 shadow-purple-500/5';
+  const colorClass = primary ? 'border-primary/30 shadow-primary/10' : 
+                     secondary ? 'border-secondary/30 shadow-secondary/10' : 
+                     accent ? 'border-accent/30 shadow-accent/10' : 'border-purple-300 shadow-purple-500/10';
 
   return (
     <motion.button
       whileTap={!isFinished ? { scale: 0.95 } : {}}
       onClick={onAdd}
       disabled={isFinished}
-      className={`relative w-full py-6 px-3 rounded-2xl border flex flex-col items-center gap-1 shadow-xl transition-all bg-white dark:bg-bg-card ${colorClass} ${isFinished ? 'opacity-80' : 'active:shadow-inner'}`}
+      className={`relative w-full py-8 px-3 rounded-[2rem] border-b-8 flex flex-col items-center gap-1 transition-all bg-bg-card shadow-2xl ${colorClass} ${isFinished ? 'opacity-80' : 'active:border-b-0 active:translate-y-1'}`}
     >
       {/* Wins Badge */}
       {wins > 0 && (
-        <div className="absolute top-1.5 left-1.5 z-30">
-          <span className="bg-primary/10 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-black animate-pulse">
-            {wins}v
-          </span>
+        <div className="absolute top-2 left-2 z-30">
+          <div className="bg-primary text-white text-[10px] w-6 h-6 flex items-center justify-center rounded-full font-black shadow-lg border-2 border-white">
+            {wins}
+          </div>
         </div>
       )}
 
-      <div 
-        className="absolute bottom-0 left-0 h-1 transition-all rounded-full bg-current opacity-30" 
-        style={{ 
-          width: `${percent}%`,
-          color: primary ? 'var(--primary)' : secondary ? 'var(--secondary)' : accent ? 'var(--accent)' : 'var(--text-main)'
-        }} 
-      />
+      {/* Progress Bar Background */}
+      <div className="absolute top-0 left-0 w-full h-2 bg-text-main/5 rounded-t-[2rem] overflow-hidden">
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: `${percent}%` }}
+          className={`h-full ${primary ? 'bg-primary' : secondary ? 'bg-secondary' : 'bg-accent'}`}
+        />
+      </div>
       
-      <div className="flex flex-col items-center relative z-20">
-        <span className={`text-4xl font-black tabular-nums transition-colors ${winner ? 'text-primary scale-110' : 'text-text-main'}`}>
+      <div className="flex flex-col items-center relative z-20 mt-2">
+        <span className={`text-5xl font-display font-black tabular-nums tracking-tighter ${winner ? 'text-secondary animate-bounce' : 'text-primary'}`}>
           {score}
         </span>
       </div>
-      {winner && <Trophy className="absolute -top-2 -right-2 w-6 h-6 text-yellow-500 drop-shadow-md z-30" />}
+      
+      {winner && <div className="absolute -top-3 -right-1 bg-yellow-400 text-white p-1.5 rounded-full shadow-lg rotate-12 z-30"><Trophy className="w-5 h-5" /></div>}
     </motion.button>
   );
 }
 
 function QuickActions({ match, teamIdx, onQuickAdd }: any) {
   const actions = [
-    { type: 'Capicúa' as PlayType, label: 'CP', pts: match.capicuaPoints },
-    { type: 'Pase Corrido' as PlayType, label: 'CO', pts: match.pasoCorridoPoints },
-    { type: 'Paso de salida' as PlayType, label: 'SA', pts: match.pasoSalidaPoints },
+    { type: 'Capicúa' as PlayType, label: 'CAPICÚA', pts: match.capicuaPoints },
+    { type: 'Pase Corrido' as PlayType, label: 'CORRIDO', pts: match.pasoCorridoPoints },
+    { type: 'Paso de salida' as PlayType, label: 'SALIDA', pts: match.pasoSalidaPoints },
   ];
 
   return (
-    <div className="flex gap-1">
+    <div className="flex flex-col gap-1.5 mt-2">
       {actions.map(action => (
         <button
           key={action.type}
@@ -447,10 +444,10 @@ function QuickActions({ match, teamIdx, onQuickAdd }: any) {
             triggerHaptic(15);
             onQuickAdd(action.type, action.pts);
           }}
-          className="flex-1 py-1.5 flex flex-col items-center justify-center bg-bg-card border border-border-theme rounded-lg text-[8px] font-black hover:border-primary/30 active:scale-90 transition-all text-text-dim"
+          className="w-full py-2 bg-bg-main border border-border-theme rounded-xl text-[7px] font-black uppercase tracking-widest hover:border-primary/40 hover:bg-bg-card active:scale-95 transition-all text-text-dim flex items-center justify-between px-3"
         >
           <span>{action.label}</span>
-          <span className="opacity-40">+{action.pts}</span>
+          <span className="text-secondary">+{action.pts}</span>
         </button>
       ))}
     </div>
@@ -482,38 +479,43 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className="w-full max-w-sm bg-bg-page rounded-[2.5rem] p-6 shadow-2xl space-y-6"
+        className="w-full max-w-sm bg-bg-card rounded-[3rem] p-8 shadow-2xl space-y-6 border-x-4 border-t-4 border-primary relative overflow-hidden"
       >
-        <div className="w-10 h-1 bg-border-theme rounded-full mx-auto" />
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-bold">{isEditing ? 'Editar' : 'Anotar'} Puntos</h3>
-          <button onClick={onClose} className="p-2 hover:bg-primary/10 rounded-full"><X /></button>
+        <div className="dominican-accent absolute top-0 left-0 w-full h-2 flex">
+           <div className="flex-1 bg-primary" />
+           <div className="flex-1 bg-secondary" />
+        </div>
+
+        <div className="flex justify-between items-center pt-2">
+          <h3 className="text-2xl font-display font-black uppercase tracking-tighter">{isEditing ? 'Editar' : 'Anotar'} Jugada</h3>
+          <button onClick={onClose} className="p-2 hover:bg-text-main/5 text-text-dim hover:text-red-500 rounded-full transition-all"><X /></button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex bg-bg-card p-1 rounded-2xl border border-border-theme">
+          <div className="flex bg-bg-main p-1.5 rounded-2xl border-2 border-border-theme">
             {match.teams.map((t: any, idx: number) => (
               <button
                 key={t.id}
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setTeamIndex(idx)}
-                className={`flex-1 py-3 text-xs font-black uppercase rounded-xl transition-all ${teamIndex === idx ? 'bg-primary text-white' : 'text-text-dim'}`}
+                className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${teamIndex === idx ? 'bg-primary text-white shadow-lg' : 'text-text-dim/40'}`}
               >
-                {t.name}
+                {t.name.split(' ')[0]}
               </button>
             ))}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 relative">
             <input 
               type="number"
-              placeholder="Puntos"
+              placeholder="00"
               value={points}
               autoFocus
               onChange={(e) => setPoints(e.target.value)}
-              className="w-full text-center text-4xl font-display font-black bg-bg-card p-5 rounded-3xl border-none ring-2 ring-border-theme focus:ring-primary outline-none"
+              className="w-full text-center text-6xl font-display font-black bg-bg-main p-8 rounded-[2rem] border-b-8 border-primary focus:border-secondary transition-all outline-none text-primary placeholder:opacity-10"
             />
+            <span className="absolute bottom-2 right-6 text-[10px] font-black text-secondary">PTS</span>
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -523,18 +525,20 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setPlayType(t)}
-                className={`p-3 rounded-xl border text-[9px] font-black uppercase transition-all ${playType === t ? 'border-primary bg-primary/10 text-primary' : 'border-border-theme bg-bg-card text-text-dim'}`}
+                className={`py-4 rounded-xl border-2 text-[9px] font-black uppercase tracking-widest transition-all ${playType === t ? 'border-secondary bg-secondary text-white' : 'border-border-theme bg-bg-main text-text-dim'}`}
               >
                 {t}
               </button>
             ))}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {isEditing && (
-              <button type="button" onClick={() => onDelete(roundToEdit.id)} className="flex-1 bg-red-50 text-red-500 p-4 rounded-2xl font-bold">Borrar</button>
+              <button type="button" onClick={() => onDelete(roundToEdit.id)} className="flex-1 bg-bg-card border-2 border-red-100 text-red-500 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest">Borrar</button>
             )}
-            <button type="submit" className="flex-[2] bg-primary text-white p-4 rounded-2xl font-bold">Guardar</button>
+            <button type="submit" className="flex-[2] bg-primary text-white p-5 rounded-2xl font-display font-black uppercase text-xl italic tracking-tighter shadow-xl shadow-primary/20 active:scale-95 transition-all">
+              {isEditing ? 'Actualizar' : '¡ANÓTALO!'}
+            </button>
           </div>
         </form>
       </motion.div>
@@ -549,25 +553,24 @@ function HistorySheet({ match, onClose, onEdit, onNewMatch, onReplay }: any) {
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className="w-full bg-bg-page rounded-t-[3rem] p-6 max-h-[85vh] overflow-y-auto scrollbar-hide border-t border-border-theme"
+        className="w-full bg-bg-page rounded-t-[3rem] p-0 max-h-[85vh] overflow-hidden border-t-4 border-primary flex flex-col"
       >
-        <div className="flex justify-between items-center mb-8 sticky top-0 bg-bg-page z-10 py-2">
+        <div className="dominican-accent h-2 w-full flex">
+           <div className="flex-1 bg-primary" />
+           <div className="flex-1 bg-secondary" />
+        </div>
+        
+        <div className="flex justify-between items-center p-6 bg-bg-card border-b border-border-theme">
           <div className="flex flex-col">
-            <h3 className="text-2xl font-black uppercase tracking-tight">Bitácora</h3>
-            {match.setWins?.some((w: number) => w > 0) && (
-              <div className="flex gap-2 mt-1">
-                 {match.teams.map((t: any, i: number) => (
-                   <span key={t.id} className="text-[9px] font-black uppercase px-2 py-0.5 bg-primary/5 rounded-full text-text-dim">
-                     {t.name.split(' ')[0]}: {match.setWins[i]}v
-                   </span>
-                 ))}
-              </div>
-            )}
+            <h3 className="text-3xl font-display font-black uppercase tracking-tighter">Historial</h3>
+            <p className="text-[10px] font-black uppercase tracking-widest text-text-dim/60">Registro oficial de trancazos</p>
           </div>
-          <button onClick={onClose} className="p-2 bg-primary/5 hover:bg-primary/10 rounded-full transition-all"><X /></button>
+          <button onClick={onClose} className="w-10 h-10 bg-bg-main hover:bg-red-50 hover:text-red-500 rounded-full flex items-center justify-center transition-all">
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        <div className="space-y-6 pb-12">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-24 scrollbar-hide">
           {/* Current Rounds */}
           <div className="space-y-2">
             {match.status === 'finished' && (
@@ -647,26 +650,27 @@ function RoundEntry({ round, match, onEdit, isHistory, historyTeamNames }: any) 
     <button 
       onClick={() => !isHistory && onEdit(round)}
       disabled={isHistory}
-      className={`w-full p-4 rounded-2xl border flex items-center justify-between transition-all ${
+      className={`w-full p-4 rounded-2xl border-2 flex items-center justify-between transition-all relative overflow-hidden group ${
         round.isDeleted 
           ? 'opacity-20 grayscale border-transparent bg-transparent' 
-          : 'border-border-theme bg-bg-card hover:border-primary/40 active:scale-[0.98]'
-      } ${isHistory ? 'cursor-default border-dashed opacity-70' : 'shadow-sm'}`}
+          : 'border-border-theme bg-bg-card hover:border-primary active:scale-[0.98]'
+      } ${isHistory ? 'cursor-default border-dashed' : 'shadow-sm'}`}
     >
-      <div className="text-left flex items-center gap-4">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black ${
-          round.winningTeamIndex === 0 ? 'bg-primary/10 text-primary' : 
-          round.winningTeamIndex === 1 ? 'bg-secondary/10 text-secondary' : 
-          round.winningTeamIndex === 2 ? 'bg-accent/10 text-accent' : 'bg-purple-500/10 text-purple-500'
+      <div className="text-left flex items-center gap-4 relative z-10">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shadow-sm ${
+          round.winningTeamIndex === 0 ? 'bg-primary text-white shadow-primary/20' : 
+          round.winningTeamIndex === 1 ? 'bg-secondary text-white shadow-secondary/20' : 
+          round.winningTeamIndex === 2 ? 'bg-accent text-white shadow-accent/20' : 'bg-purple-500 text-white shadow-purple-500/20'
         }`}>
-          {teamName.charAt(0)}
+          {teamName.charAt(0).toUpperCase()}
         </div>
         <div>
-          <span className="block text-[8px] font-black uppercase opacity-40 tracking-widest">{teamName}</span>
-          <span className="font-bold text-sm tracking-tight">{round.playType}</span>
+          <span className="block text-[8px] font-black uppercase text-text-dim/60 tracking-[0.2em]">{teamName}</span>
+          <span className="font-black text-sm uppercase tracking-tight text-text-main">{round.playType}</span>
         </div>
       </div>
-      <div className="text-xl font-display font-black tracking-tighter">+{round.points}</div>
+      <div className="text-2xl font-display font-black tracking-tighter text-primary relative z-10">+{round.points}</div>
+      <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full -mr-8 -mt-8 translate-x-4 -translate-y-4 transition-transform group-hover:scale-110" />
     </button>
   );
 }
@@ -677,30 +681,47 @@ function WinnerModal({ match, onClose, onNewMatch, onReplay }: any) {
   const currentWins = match.setWins?.[winnerIdx] || 0;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-primary/20 backdrop-blur-md p-6">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
       <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-bg-page border-4 border-primary p-8 rounded-[3rem] shadow-2xl text-center space-y-6 w-full max-w-sm relative overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="absolute inset-0 bg-primary/40 backdrop-blur-md"
+      />
+      <motion.div 
+        initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
+        animate={{ scale: 1, opacity: 1, rotate: 0 }}
+        className="bg-bg-card border-8 border-primary p-8 rounded-[4rem] shadow-2xl text-center space-y-6 w-full max-w-sm relative overflow-hidden"
       >
-        <div className="flex justify-center relative">
-          <Trophy className="w-20 h-20 text-yellow-500 animate-bounce" />
-          <div className="absolute -top-2 -right-2 bg-primary text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-lg border-2 border-white">
-            {currentWins + 1} SETS
+        <div className="dominican-accent absolute top-0 left-0 w-full h-4 flex">
+           <div className="flex-1 bg-primary" />
+           <div className="flex-1 bg-secondary" />
+        </div>
+
+        <div className="flex justify-center relative pt-4">
+          <div className="relative">
+            <Trophy className="w-24 h-24 text-yellow-500 animate-bounce" />
+            <motion.div 
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="absolute -top-4 -right-4 bg-secondary text-white text-[10px] font-black px-4 py-2 rounded-full shadow-2xl border-4 border-white rotate-12"
+            >
+              {currentWins + 1} SETS
+            </motion.div>
           </div>
         </div>
         <div>
-          <h2 className="text-3xl font-black uppercase italic tracking-tighter">¡Ganador!</h2>
-          <p className="text-2xl font-bold mt-1">{winner?.name}</p>
+          <h2 className="text-4xl font-display font-black uppercase italic tracking-tighter text-primary">¡BRUTAL!</h2>
+          <p className="text-2xl font-black uppercase text-secondary tracking-tight mt-2">{winner?.name}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-text-dim/60 mt-2">DUEÑO DE LA MESA</p>
         </div>
-        <div className="space-y-4">
-           <button onClick={onReplay} className="w-full bg-primary text-white p-4 rounded-2xl font-black uppercase tracking-tight flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all">
-             <RotateCcw className="w-5 h-5" />
-             Volver a jugar
+        <div className="space-y-4 pt-4">
+           <button onClick={onReplay} className="w-full bg-primary text-white p-6 rounded-3xl font-display font-black uppercase tracking-tighter flex items-center justify-center gap-3 shadow-xl shadow-primary/30 active:scale-95 transition-all text-xl">
+             <RotateCcw className="w-6 h-6 text-secondary" strokeWidth={4} />
+             REVANCHA
            </button>
-           <div className="grid grid-cols-2 gap-2">
-             <button onClick={onNewMatch} className="bg-bg-card border border-border-theme p-3 rounded-2xl font-bold text-[10px] uppercase text-text-dim hover:bg-primary/5 transition-all">Nueva Partida</button>
-             <button onClick={onClose} className="bg-bg-card border border-border-theme p-3 rounded-2xl font-bold text-[10px] uppercase text-text-dim hover:bg-primary/5 transition-all">Bitácora</button>
+           <div className="grid grid-cols-2 gap-3">
+             <button onClick={onNewMatch} className="bg-bg-main border-2 border-border-theme p-4 rounded-2xl font-black text-[10px] uppercase text-text-dim hover:bg-primary hover:text-white transition-all">Nueva Mesa</button>
+             <button onClick={onClose} className="bg-bg-main border-2 border-border-theme p-4 rounded-2xl font-black text-[10px] uppercase text-text-dim hover:bg-primary hover:text-white transition-all">Bitácora</button>
            </div>
         </div>
       </motion.div>

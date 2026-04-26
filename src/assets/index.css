@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Gochi+Hand&family=Caveat:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&family=Gochi+Hand&family=Caveat:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-escolar: "Gochi Hand", cursive;
   --font-cartulina: "Caveat", cursive;
   --font-display: "Space Grotesk", sans-serif;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
 
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
@@ -14,22 +15,24 @@
   --color-text-main: var(--text-main);
   --color-text-dim: var(--text-dim);
   --color-border-theme: var(--border-theme);
+  --color-bg-main: var(--bg-main);
 
   --radius-theme: var(--radius);
 }
 
 @layer base {
   :root {
-    /* Minimalist (Default) */
-    --primary: #18181b;
-    --secondary: #71717a;
-    --accent: #3f3f46;
-    --bg-page: #ffffff;
-    --bg-card: #fafafa;
-    --text-main: #09090b;
-    --text-dim: #52525b;
-    --border-theme: #e4e4e7;
-    --radius: 0.5rem;
+    /* Dominican (New Default) */
+    --primary: #002D62;
+    --secondary: #CE1126;
+    --accent: #E5B22E;
+    --bg-page: #FDFCFB;
+    --bg-card: #FFFFFF;
+    --bg-main: #F3F4F6;
+    --text-main: #050505;
+    --text-dim: #4B5563;
+    --border-theme: #E5E7EB;
+    --radius: 1.25rem;
     font-family: var(--font-sans);
   }
 
@@ -39,15 +42,34 @@
     --accent: #eab308;     /* Amarillo */
     --bg-page: #fefce8;    /* Papel amarillo pálido */
     --bg-card: #ffffff;
+    --bg-main: #fef9c3;
     --text-main: #1e3a8a;
     --text-dim: #1d4ed8;
     --border-theme: #93c5fd;
     --radius: 1rem;
     font-family: var(--font-escolar) !important;
   }
+
+  .theme-dominicano {
+    --primary: #002D62;
+    --secondary: #CE1126;
+    --accent: #E5B22E;
+    --bg-page: #FDFCFB;
+    --bg-card: #FFFFFF;
+    --bg-main: #F3F4F6;
+    --text-main: #050505;
+    --text-dim: #4B5563;
+    --border-theme: #E5E7EB;
+    --radius: 1.5rem;
+    font-family: var(--font-sans) !important;
+  }
   
   .theme-escolar * {
     font-family: var(--font-escolar) !important;
+  }
+
+  .theme-dominicano * {
+    font-family: var(--font-sans) !important;
   }
 
   .theme-cartulina {
@@ -56,6 +78,7 @@
     --accent: #1e40af;     /* Azul marcador */
     --bg-page: #f5f5f4;    /* Textura cartulina */
     --bg-card: #fdfdfd;
+    --bg-main: #e7e5e4;
     --text-main: #1c1917;
     --text-dim: #44403c;
     --border-theme: #d6d3d1;
@@ -73,6 +96,7 @@
     --accent: #22c55e;     /* Success Green */
     --bg-page: #0f172a;    /* Deep Blue BG */
     --bg-card: #1e293b;    /* Card BG */
+    --bg-main: #334155;
     --text-main: #f8fafc;
     --text-dim: #94a3b8;
     --border-theme: #334155;
@@ -81,15 +105,30 @@
   }
 
   .dark {
-    --primary: #3b82f6 !important;    /* Azul royal vibrante */
-    --secondary: #6366f1 !important;  /* Indigo para acentos */
-    --accent: #10b981 !important;     /* Esmeralda para victorias */
-    --bg-page: #000000 !important;    /* Negro OLED real */
-    --bg-card: #0a0a0a !important;    /* Casi negro para capas */
-    --text-main: #ffffff !important;
-    --text-dim: #94a3b8 !important;
-    --border-theme: #1a1a1a !important;
+    --bg-page: #000000;
+    --bg-card: #0a0a0a;
+    --bg-main: #111111;
+    --text-main: #ffffff;
+    --text-dim: #94a3b8;
+    --border-theme: #1a1a1a;
     color-scheme: dark;
+  }
+
+  /* Specific Dominican Dark refinement */
+  .theme-dominicano.dark, .dark:not([class*="theme-"]) {
+    --bg-page: #05070a; /* Deep tech navy/black */
+    --bg-card: #0d1117;
+    --bg-main: #161b22;
+    --border-theme: #1f2937;
+    --text-main: #f8fafc;
+    --text-dim: #94a3b8;
+    --primary: #2563eb; /* A bit brighter blue for dark mode contrast */
+  }
+
+  .theme-dominicano.dark body {
+    background-image: 
+      radial-gradient(rgba(0, 45, 98, 0.2) 0.5px, transparent 0.5px),
+      radial-gradient(rgba(206, 17, 38, 0.2) 0.5px, transparent 0.5px);
   }
 }
 
@@ -110,6 +149,15 @@ body {
   background-size: 100% 1.5rem; /* Efecto renglones */
 }
 
+.theme-dominicano body, :root body:not([class*="theme-"]) {
+  background-image: 
+    radial-gradient(var(--primary) 0.5px, transparent 0.5px),
+    radial-gradient(var(--secondary) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  background-attachment: fixed;
+}
+
 .theme-cartulina body {
   background-image: 
     radial-gradient(#d1d5db 1px, transparent 1px);
@@ -126,4 +174,18 @@ body {
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@layer utilities {
+  .dominican-accent {
+    background: linear-gradient(to bottom, #002D62 50%, #CE1126 50%);
+  }
+
+  .card-premium {
+    @apply bg-bg-card border-2 border-border-theme p-6 rounded-[2rem] shadow-xl hover:shadow-2xl hover:border-primary/20 transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white font-display font-black uppercase tracking-tighter shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all;
+  }
 }

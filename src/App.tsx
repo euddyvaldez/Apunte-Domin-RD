@@ -14,6 +14,7 @@ import {
   X,
   MessageCircle
 } from 'lucide-react';
+import { ThemeType } from './types';
 import { useAppStore } from './context/StoreContext';
 import HomeView from './views/HomeView';
 import SetupView from './views/SetupView';
@@ -75,51 +76,59 @@ export default function App() {
       <div className="max-w-md mx-auto min-h-screen flex flex-col bg-bg-page shadow-xl overflow-hidden relative border-x border-border-theme">
         
         {/* Header */}
-        <header className="p-4 flex items-center justify-between border-b border-border-theme bg-bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-          <div className="flex items-center gap-2">
-            {view !== 'home' && (
-              <button 
-                onClick={() => navigate('home')}
-                className="p-1 hover:bg-primary/10 rounded-full transition-colors"
-                id="back-button"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            )}
-            <h1 className="font-display font-bold text-xl tracking-tight" id="app-title">
-              Apuntes de Dominó <span className="text-primary italic">RD</span>
-            </h1>
+        <header className="p-0 border-b border-border-theme bg-bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+          {/* Dominican Accent Bar */}
+          <div className="dominican-accent h-1 w-full flex">
+             <div className="flex-1 bg-[#002D62]" />
+             <div className="flex-1 bg-[#CE1126]" />
           </div>
           
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setShowContact(true)}
-              className="p-2 bg-secondary/10 text-secondary rounded-full hover:bg-secondary/20 transition-all active:scale-90"
-              title="Contacto Desarrollador"
-              id="info-button"
-            >
-              <Info className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => store.toggleDarkMode()}
-              className="p-2 bg-text-main/10 text-text-main rounded-full hover:bg-text-main/20 transition-all active:scale-90"
-              title={store.isDarkMode ? "Modo Claro" : "Modo Oscuro"}
-              id="theme-toggle-button"
-            >
-              {store.isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            <button 
-              onClick={() => {
-                const themes: ('minimalist' | 'escolar' | 'cartulina' | 'sleek')[] = ['minimalist', 'escolar', 'cartulina', 'sleek'];
-                const nextIdx = (themes.indexOf(store.theme) + 1) % themes.length;
-                store.setTheme(themes[nextIdx]);
-              }}
-              className="p-2 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-all active:scale-90"
-              title="Cambiar Tema"
-              id="palette-button"
-            >
-              <Palette className="w-5 h-5" />
-            </button>
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {view !== 'home' && (
+                <button 
+                  onClick={() => navigate('home')}
+                  className="p-1 hover:bg-primary/10 rounded-full transition-colors"
+                  id="back-button"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+              )}
+              <h1 className="font-display font-black text-xl tracking-tighter uppercase" id="app-title">
+                DOMINÓ <span className="text-secondary">RD</span>
+              </h1>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => store.toggleDarkMode()}
+                className="p-2 bg-text-main/5 text-text-dim rounded-xl hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
+                title={store.isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+                id="theme-toggle-button"
+              >
+                {store.isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button 
+                onClick={() => setShowContact(true)}
+                className="p-2 bg-text-main/5 text-text-dim rounded-xl hover:bg-secondary/10 hover:text-secondary transition-all active:scale-90"
+                title="Contacto Desarrollador"
+                id="info-button"
+              >
+                <Info className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={() => {
+                  const themes: ThemeType[] = ['dominicano', 'minimalist', 'escolar', 'cartulina', 'sleek'];
+                  const nextIdx = (themes.indexOf(store.theme) + 1) % themes.length;
+                  store.setTheme(themes[nextIdx]);
+                }}
+                className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary/20 transition-all active:scale-90"
+                title="Cambiar Tema"
+                id="palette-button"
+              >
+                <Palette className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </header>
 

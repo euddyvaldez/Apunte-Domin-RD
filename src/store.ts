@@ -20,7 +20,7 @@ interface AppData {
 const DEFAULT_DATA: AppData = {
   matches: [],
   teams: [],
-  theme: 'minimalist',
+  theme: 'dominicano',
   isDarkMode: false,
   currentMatchId: null,
   onboardingSeen: false,
@@ -60,9 +60,9 @@ const recalculateMatch = (match: Match): Match => {
     }
   });
 
-  if (status === 'finished' && !finishedTeamNames) {
+  if (status === ('finished' as any) && !finishedTeamNames) {
     finishedTeamNames = match.teams.map(t => t.name);
-  } else if (status === 'active') {
+  } else if (status === ('active' as any)) {
     finishedTeamNames = undefined;
   }
 

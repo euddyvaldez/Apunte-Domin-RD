@@ -43,4 +43,4 @@ export interface Match {
   finishedTeamNames?: string[];
 }
 
-export type ThemeType = 'escolar' | 'cartulina' | 'minimalist' | 'sleek';
+export type ThemeType = 'escolar' | 'cartulina' | 'minimalist' | 'sleek' | 'dominicano';
