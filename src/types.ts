@@ -38,6 +38,8 @@ export interface Match {
   pasoCorridoPoints: number;
   winnerTeamId?: string;
   status: 'active' | 'finished';
+  setWins?: number[];
+  historySets?: { rounds: Round[]; winnerTeamId: string; date: number }[];
 }
 
 export type ThemeType = 'escolar' | 'cartulina' | 'minimalist' | 'sleek';

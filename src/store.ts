@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Match, Team, Player, Round, PlayType, ThemeType } from './types';
 
 const STORAGE_KEY = 'domino_rd_app_data';
@@ -99,7 +99,9 @@ export function useStore() {
             scoreLimit: Number(m.scoreLimit) || 100,
             capicuaPoints: Number(m.capicuaPoints) || 30,
             pasoSalidaPoints: Number(m.pasoSalidaPoints) || 30,
-            pasoCorridoPoints: Number(m.pasoCorridoPoints) || 30
+            pasoCorridoPoints: Number(m.pasoCorridoPoints) || 30,
+            setWins: m.setWins || m.teams.map(() => 0),
+            historySets: m.historySets || []
           });
         });
       }
@@ -161,6 +163,8 @@ export function useStore() {
       pasoSalidaPoints: sanitizePoints(pasoSalida),
       pasoCorridoPoints: sanitizePoints(pasoCorrido),
       status: 'active',
+      setWins: teams.map(() => 0),
+      historySets: [],
     };
     setData(prev => ({
       ...prev,
@@ -171,6 +175,41 @@ export function useStore() {
   };
 
   const isRegularRound = (type: PlayType) => ['Dominó', 'Tranque', 'Otro'].includes(type);
+
+  const replayMatch = (matchId: string) => {
+    setData(prev => {
+      const matchIndex = prev.matches.findIndex(m => m.id === matchId);
+      if (matchIndex === -1) return prev;
+      
+      const match = prev.matches[matchIndex];
+      const winnerIndex = match.teams.findIndex(t => t.id === match.winnerTeamId);
+      
+      if (winnerIndex === -1) return prev;
+
+      const newSetWins = [...(match.setWins || match.teams.map(() => 0))];
+      newSetWins[winnerIndex]++;
+
+      const newHistorySet = {
+        rounds: [...match.rounds],
+        winnerTeamId: match.winnerTeamId!,
+        date: Date.now()
+      };
+
+      const updatedMatch: Match = {
+        ...match,
+        rounds: [],
+        status: 'active',
+        winnerTeamId: undefined,
+        setWins: newSetWins,
+        historySets: [...(match.historySets || []), newHistorySet]
+      };
+
+      const updatedMatches = [...prev.matches];
+      updatedMatches[matchIndex] = updatedMatch;
+
+      return { ...prev, matches: updatedMatches };
+    });
+  };
 
   const addRound = (matchId: string, roundData: Omit<Round, 'id' | 'timestamp' | 'number' | 'matchId'>) => {
     setData(prev => {
@@ -331,6 +370,7 @@ export function useStore() {
     updateMatchLimit,
     updateTeamName,
     updateQuickPointsConfig,
+    replayMatch,
     setCurrentMatch: (id: string | null) => setData(prev => ({ ...prev, currentMatchId: id })),
     setOnboardingSeen: (val: boolean) => setData(prev => ({ ...prev, onboardingSeen: val })),
   };

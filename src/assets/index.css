@@ -2,7 +2,6 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-escolar: "Gochi Hand", cursive;
   --font-cartulina: "Caveat", cursive;
   --font-display: "Space Grotesk", sans-serif;
@@ -119,4 +118,12 @@ body {
 
 .theme-sleek body {
   background: radial-gradient(circle at top right, #1e293b, #0f172a);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
