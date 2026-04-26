@@ -51,6 +51,7 @@ const recalculateMatch = (match: Match): Match => {
 
   let status: 'active' | 'finished' = 'active';
   let winnerId: string | undefined = undefined;
+  let finishedTeamNames = match.finishedTeamNames;
 
   teamScores.forEach((score, index) => {
     if (score >= match.scoreLimit) {
@@ -59,11 +60,18 @@ const recalculateMatch = (match: Match): Match => {
     }
   });
 
+  if (status === 'finished' && !finishedTeamNames) {
+    finishedTeamNames = match.teams.map(t => t.name);
+  } else if (status === 'active') {
+    finishedTeamNames = undefined;
+  }
+
   return {
     ...match,
     rounds: updatedRounds,
     status,
     winnerTeamId: winnerId,
+    finishedTeamNames
   };
 };
 
@@ -192,7 +200,8 @@ export function useStore() {
       const newHistorySet = {
         rounds: [...match.rounds],
         winnerTeamId: match.winnerTeamId!,
-        date: Date.now()
+        date: Date.now(),
+        teamNames: match.finishedTeamNames || match.teams.map(t => t.name)
       };
 
       const updatedMatch: Match = {
@@ -303,6 +312,44 @@ export function useStore() {
     }));
   };
 
+  const updateMatchMode = (matchId: string, numTeams: number) => {
+    setData(prev => {
+      const matchIndex = prev.matches.findIndex(m => m.id === matchId);
+      if (matchIndex === -1) return prev;
+
+      const match = prev.matches[matchIndex];
+      const currentTeams = match.teams;
+      let newTeams: Team[] = [];
+
+      if (numTeams > currentTeams.length) {
+        // Add new teams
+        newTeams = [...currentTeams];
+        for (let i = currentTeams.length; i < numTeams; i++) {
+          newTeams.push({
+            id: generateUUID(),
+            name: `Equipo ${String.fromCharCode(65 + i)}`,
+          });
+        }
+      } else if (numTeams < currentTeams.length) {
+        // Remove teams
+        newTeams = currentTeams.slice(0, numTeams);
+      } else {
+        return prev;
+      }
+
+      const updatedMatch = recalculateMatch({
+        ...match,
+        teams: newTeams,
+        setWins: newTeams.map((_, i) => match.setWins?.[i] || 0)
+      });
+
+      const updatedMatches = [...prev.matches];
+      updatedMatches[matchIndex] = updatedMatch;
+
+      return { ...prev, matches: updatedMatches };
+    });
+  };
+
   const updateMatchLimit = (matchId: string, newLimit: number) => {
     setData(prev => {
       const matchIndex = prev.matches.findIndex(m => m.id === matchId);
@@ -338,14 +385,27 @@ export function useStore() {
     });
   };
 
-  const updateTeamName = (matchId: string, teamIndex: number, newName: string) => {
+  const updateTeamName = (matchId: string, teamId: string, newName: string) => {
     setData(prev => {
       const matchIndex = prev.matches.findIndex(m => m.id === matchId);
       if (matchIndex === -1) return prev;
 
       const updatedMatches = [...prev.matches];
       const match = { ...updatedMatches[matchIndex] };
+      const teamIndex = match.teams.findIndex(t => t.id === teamId);
+      if (teamIndex === -1) return prev;
+
       const updatedTeams = [...match.teams];
+      const oldNames = match.teams.map(t => t.name);
+      
+      // "Lock" history sets that don't have teamNames yet
+      if (match.historySets && match.historySets.length > 0) {
+        match.historySets = match.historySets.map(set => ({
+          ...set,
+          teamNames: set.teamNames || oldNames
+        }));
+      }
+
       updatedTeams[teamIndex] = { ...updatedTeams[teamIndex], name: newName };
       match.teams = updatedTeams;
       
@@ -371,6 +431,7 @@ export function useStore() {
     updateTeamName,
     updateQuickPointsConfig,
     replayMatch,
+    updateMatchMode,
     setCurrentMatch: (id: string | null) => setData(prev => ({ ...prev, currentMatchId: id })),
     setOnboardingSeen: (val: boolean) => setData(prev => ({ ...prev, onboardingSeen: val })),
   };

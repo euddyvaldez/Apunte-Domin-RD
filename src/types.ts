@@ -39,7 +39,8 @@ export interface Match {
   winnerTeamId?: string;
   status: 'active' | 'finished';
   setWins?: number[];
-  historySets?: { rounds: Round[]; winnerTeamId: string; date: number }[];
+  historySets?: { rounds: Round[]; winnerTeamId: string; date: number; teamNames?: string[] }[];
+  finishedTeamNames?: string[];
 }
 
 export type ThemeType = 'escolar' | 'cartulina' | 'minimalist' | 'sleek';

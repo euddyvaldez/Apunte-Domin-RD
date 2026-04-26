@@ -19,7 +19,7 @@ import {
 import confetti from 'canvas-confetti';
 import { triggerHaptic } from '../lib/haptics';
 import { calculateRoundPoints } from '../store';
-import { PlayType } from '../types';
+import { PlayType, Team } from '../types';
 
 const PLAY_ABBR: Record<string, string> = {
   'Dominó': 'DOM',
@@ -59,7 +59,22 @@ export default function GameView({ navigate, store }: any) {
     }, 0);
   });
 
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+
   const isFinished = match.status === 'finished';
+
+  const handleEditTeamName = (team: Team) => {
+    setEditingTeamId(team.id);
+    setEditingName(team.name);
+  };
+
+  const saveTeamName = () => {
+    if (editingTeamId && editingName.trim()) {
+      store.updateTeamName(match.id, editingTeamId, editingName.trim());
+    }
+    setEditingTeamId(null);
+  };
 
   const handleReplay = () => {
     store.replayMatch(match.id);
@@ -118,9 +133,38 @@ export default function GameView({ navigate, store }: any) {
 
         <div className={`grid ${gridColsClass} gap-2`}>
           {match.teams.map((team: any, idx: number) => (
-            <div key={team.id} className="flex flex-col gap-1.5 min-w-0">
+            <div key={team.id} className="flex flex-col gap-2 min-w-0">
+              {/* Team Label & Edits */}
+              <div className="flex items-center justify-center px-1 h-6">
+                <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-center">
+                  {editingTeamId === team.id ? (
+                    <input
+                      autoFocus
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onBlur={saveTeamName}
+                      onKeyDown={(e) => e.key === 'Enter' && saveTeamName()}
+                      className="text-[10px] font-black uppercase bg-primary/5 border border-primary/20 outline-none rounded px-2 w-full text-primary"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-1 min-w-0">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-text-dim/60 truncate">
+                        {team.name}
+                      </span>
+                      {!isFinished && (
+                        <button 
+                          onClick={() => handleEditTeamName(team)}
+                          className="p-1 opacity-20 hover:opacity-100 hover:text-primary transition-all flex-shrink-0"
+                        >
+                          <Pencil className="w-2.5 h-2.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <ScoreCard 
-                name={team.name} 
                 score={teamScores[idx]} 
                 limit={match.scoreLimit} 
                 primary={idx === 0}
@@ -198,6 +242,31 @@ export default function GameView({ navigate, store }: any) {
             exit={{ opacity: 0, y: -10 }}
             className="mx-4 mb-4 p-2 bg-bg-card border border-border-theme rounded-xl shadow-xl z-50 flex flex-col gap-1"
           >
+            {/* Modalidad Control */}
+            <div className="p-2 space-y-2 mb-1">
+              <span className="text-[9px] font-black uppercase text-text-dim/40 tracking-widest pl-1">Modalidad de Partida</span>
+              <div className="flex bg-primary/5 p-1 rounded-lg gap-1 border border-border-theme/30">
+                {[2, 3, 4].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => {
+                      triggerHaptic(10);
+                      store.updateMatchMode(match.id, num);
+                    }}
+                    className={`flex-1 py-2 rounded-md text-[9px] font-black uppercase transition-all ${
+                      match.teams.length === num 
+                        ? 'bg-primary text-white shadow-sm' 
+                        : 'text-text-dim hover:bg-primary/5'
+                    }`}
+                  >
+                    {num === 2 ? 'Frente' : num === 3 ? '3 Jug.' : 'To pa to'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-px bg-border-theme/20 mx-2 mb-1" />
+
             <button 
               onClick={() => navigate('home')}
               className="flex items-center gap-3 p-3 hover:bg-primary/5 rounded-lg text-sm font-bold text-primary"
@@ -322,30 +391,42 @@ export default function GameView({ navigate, store }: any) {
   );
 }
 
-function ScoreCard({ name, score, limit, primary, secondary, accent, winner, onAdd, isFinished, wins }: any) {
+function ScoreCard({ score, limit, primary, secondary, accent, winner, onAdd, isFinished, wins }: any) {
   const percent = Math.min((score / limit) * 100, 100);
-  const colorClass = primary ? 'bg-primary text-white shadow-primary/20' : 
-                     secondary ? 'bg-secondary text-white shadow-secondary/20' : 
-                     accent ? 'bg-accent text-white shadow-accent/20' : 'bg-purple-500 text-white';
+  const colorClass = primary ? 'border-primary/40 shadow-primary/5' : 
+                     secondary ? 'border-secondary/40 shadow-secondary/5' : 
+                     accent ? 'border-accent/40 shadow-accent/5' : 'border-purple-500/40 shadow-purple-500/5';
 
   return (
     <motion.button
       whileTap={!isFinished ? { scale: 0.95 } : {}}
       onClick={onAdd}
       disabled={isFinished}
-      className={`relative w-full p-3 rounded-2xl border border-border-theme flex flex-col items-center gap-1 shadow-md transition-all ${isFinished ? 'opacity-80' : 'active:shadow-inner'}`}
+      className={`relative w-full py-6 px-3 rounded-2xl border flex flex-col items-center gap-1 shadow-xl transition-all bg-white dark:bg-bg-card ${colorClass} ${isFinished ? 'opacity-80' : 'active:shadow-inner'}`}
     >
-      <div className="absolute top-0 left-0 h-full bg-primary/5 rounded-2xl transition-all" style={{ width: `${percent}%` }} />
-      <div className="flex items-center gap-1 w-full justify-center">
-        <span className="text-[9px] font-black uppercase tracking-widest opacity-40 truncate">{name}</span>
-        {wins > 0 && (
-          <span className="bg-primary/20 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-black animate-pulse">
-            {wins} v
+      {/* Wins Badge */}
+      {wins > 0 && (
+        <div className="absolute top-1.5 left-1.5 z-30">
+          <span className="bg-primary/10 text-primary text-[8px] px-1.5 py-0.5 rounded-full font-black animate-pulse">
+            {wins}v
           </span>
-        )}
+        </div>
+      )}
+
+      <div 
+        className="absolute bottom-0 left-0 h-1 transition-all rounded-full bg-current opacity-30" 
+        style={{ 
+          width: `${percent}%`,
+          color: primary ? 'var(--primary)' : secondary ? 'var(--secondary)' : accent ? 'var(--accent)' : 'var(--text-main)'
+        }} 
+      />
+      
+      <div className="flex flex-col items-center relative z-20">
+        <span className={`text-4xl font-black tabular-nums transition-colors ${winner ? 'text-primary scale-110' : 'text-text-main'}`}>
+          {score}
+        </span>
       </div>
-      <div className="text-3xl font-display font-black tabular-nums relative z-10">{score}</div>
-      {winner && <Trophy className="absolute -top-2 -right-1 w-5 h-5 text-yellow-500 drop-shadow-sm" />}
+      {winner && <Trophy className="absolute -top-2 -right-2 w-6 h-6 text-yellow-500 drop-shadow-md z-30" />}
     </motion.button>
   );
 }
@@ -489,8 +570,22 @@ function HistorySheet({ match, onClose, onEdit, onNewMatch, onReplay }: any) {
         <div className="space-y-6 pb-12">
           {/* Current Rounds */}
           <div className="space-y-2">
+            {match.status === 'finished' && (
+              <div className="flex flex-col items-center py-4 bg-primary/5 rounded-2xl mb-4 border border-dashed border-primary/20">
+                <Trophy className="w-6 h-6 text-yellow-500 mb-1" />
+                <p className="text-xs font-black uppercase tracking-widest text-primary">
+                  Ganador del Set: <span className="italic">{match.finishedTeamNames?.find((_, i) => match.teams[i].id === match.winnerTeamId) || match.teams.find(t => t.id === match.winnerTeamId)?.name}</span>
+                </p>
+              </div>
+            )}
             {[...match.rounds].reverse().map(r => (
-              <RoundEntry key={r.id} round={r} match={match} onEdit={onEdit} />
+              <RoundEntry 
+                key={r.id} 
+                round={r} 
+                match={match} 
+                onEdit={onEdit} 
+                historyTeamNames={match.finishedTeamNames}
+              />
             ))}
             {match.rounds.length === 0 && (!match.historySets || match.historySets.length === 0) && (
               <div className="text-center py-12 text-text-dim/20 italic font-black uppercase tracking-widest text-xs">
@@ -501,7 +596,9 @@ function HistorySheet({ match, onClose, onEdit, onNewMatch, onReplay }: any) {
 
           {/* Previous Sets */}
           {[...(match.historySets || [])].reverse().map((set: any, idx: number) => {
-            const winner = match.teams.find((t: any) => t.id === set.winnerTeamId);
+            const teamNames = set.teamNames || match.teams.map((t: any) => t.name);
+            const winnerIdx = match.teams.findIndex((t: any) => t.id === set.winnerTeamId);
+            const winnerName = teamNames[winnerIdx] || 'Equipo';
             const totalScore = set.rounds.reduce((acc: number, r: any) => acc + (r.isDeleted ? 0 : Number(r.points)), 0);
             const actualIdx = match.historySets.length - idx;
 
@@ -517,8 +614,8 @@ function HistorySheet({ match, onClose, onEdit, onNewMatch, onReplay }: any) {
                       <Trophy className="w-3.5 h-3.5" />
                       <span className="text-[8px] font-black uppercase tracking-[0.2em] opacity-60">Set {actualIdx}</span>
                     </div>
-                    <p className="text-sm font-black uppercase tracking-tight text-primary flex items-center gap-1.5">
-                      GANADOR: <span className="italic">{winner?.name}</span>
+                    <p className="text-sm font-black uppercase tracking-tight text-primary flex items-center gap-1.5 text-center">
+                      GANADOR: <span className="italic">{winnerName}</span>
                     </p>
                     <span className="text-[9px] font-bold text-text-dim opacity-40">
                        Vitoria con {totalScore} pts
@@ -529,7 +626,7 @@ function HistorySheet({ match, onClose, onEdit, onNewMatch, onReplay }: any) {
                 {/* Historical Rounds */}
                 <div className="space-y-2">
                   {[...set.rounds].reverse().map((r: any) => (
-                    <RoundEntry key={r.id} round={r} match={match} onEdit={onEdit} isHistory />
+                    <RoundEntry key={r.id} round={r} match={match} onEdit={onEdit} isHistory historyTeamNames={teamNames} />
                   ))}
                 </div>
               </div>
@@ -541,7 +638,11 @@ function HistorySheet({ match, onClose, onEdit, onNewMatch, onReplay }: any) {
   );
 }
 
-function RoundEntry({ round, match, onEdit, isHistory }: any) {
+function RoundEntry({ round, match, onEdit, isHistory, historyTeamNames }: any) {
+  const teamName = historyTeamNames 
+    ? historyTeamNames[round.winningTeamIndex] 
+    : (match.teams[round.winningTeamIndex]?.name || 'Equipo');
+
   return (
     <button 
       onClick={() => !isHistory && onEdit(round)}
@@ -555,12 +656,13 @@ function RoundEntry({ round, match, onEdit, isHistory }: any) {
       <div className="text-left flex items-center gap-4">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black ${
           round.winningTeamIndex === 0 ? 'bg-primary/10 text-primary' : 
-          round.winningTeamIndex === 1 ? 'bg-secondary/10 text-secondary' : 'bg-accent/10 text-accent'
+          round.winningTeamIndex === 1 ? 'bg-secondary/10 text-secondary' : 
+          round.winningTeamIndex === 2 ? 'bg-accent/10 text-accent' : 'bg-purple-500/10 text-purple-500'
         }`}>
-          {match.teams[round.winningTeamIndex].name.charAt(0)}
+          {teamName.charAt(0)}
         </div>
         <div>
-          <span className="block text-[8px] font-black uppercase opacity-40 tracking-widest">{match.teams[round.winningTeamIndex].name}</span>
+          <span className="block text-[8px] font-black uppercase opacity-40 tracking-widest">{teamName}</span>
           <span className="font-bold text-sm tracking-tight">{round.playType}</span>
         </div>
       </div>
