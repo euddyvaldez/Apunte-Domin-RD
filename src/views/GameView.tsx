@@ -231,12 +231,21 @@ export default function GameView({ navigate, store }: any) {
       {/* Options Modal Helper */}
       <AnimatePresence>
         {showOptions && !isFinished && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mx-4 mb-4 p-2 bg-bg-card border border-border-theme rounded-xl shadow-xl z-50 flex flex-col gap-1"
-          >
+          <>
+            {/* Overlay to handle click outside */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowOptions(false)}
+              className="fixed inset-0 z-40 bg-black/5"
+            />
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mx-4 mb-4 p-2 bg-bg-card border border-border-theme rounded-xl shadow-xl z-50 flex flex-col gap-1 relative"
+            >
             {/* Modalidad Control */}
             <div className="p-2 space-y-2 mb-1">
               <span className="text-[9px] font-black uppercase text-text-dim/40 tracking-widest pl-1">Modalidad de Partida</span>
@@ -291,8 +300,9 @@ export default function GameView({ navigate, store }: any) {
               <Flag className="w-4 h-4" /> Abandonar Partida
             </button>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </>
+      )}
+    </AnimatePresence>
 
       {/* History Grid on Front Page */}
       <div className="flex-1 p-3 overflow-y-auto scrollbar-hide">
