@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useEffect, FormEvent } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
   RotateCcw, 
@@ -359,8 +359,8 @@ export default function GameView({ navigate, store }: any) {
               store.updateRound(match.id, roundId, roundData);
               setRoundToEdit(null);
             }}
-            onDelete={(roundId: string) => {
-              store.deleteRound(match.id, roundId);
+            onToggleDelete={(roundId: string) => {
+              store.toggleRoundDelete(match.id, roundId);
               setRoundToEdit(null);
             }}
           />
@@ -464,15 +464,16 @@ function QuickActions({ match, teamIdx, onQuickAdd }: any) {
   );
 }
 
-function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, initialTeamIndex }: any) {
+function PointsModal({ onClose, match, onAdd, onUpdate, onToggleDelete, roundToEdit, initialTeamIndex }: any) {
   const isEditing = !!roundToEdit;
+  const isDeleted = roundToEdit?.isDeleted;
   const [teamIndex, setTeamIndex] = useState<number>(isEditing ? roundToEdit.winningTeamIndex : initialTeamIndex);
   const [points, setPoints] = useState<string>(isEditing ? roundToEdit.points.toString() : '');
   const [playType, setPlayType] = useState<PlayType>(isEditing ? roundToEdit.playType : 'Dominó');
 
   const types: PlayType[] = ['Dominó', 'Tranque', 'Otro'];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     triggerHaptic(30);
     const pts = calculateRoundPoints(parseInt(points) || 0, playType);
@@ -484,12 +485,12 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
       <motion.div 
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className="w-full max-w-sm bg-bg-card rounded-[3rem] p-8 shadow-2xl space-y-6 border-x-4 border-t-4 border-primary relative overflow-hidden"
+        className="w-full max-w-md sm:max-w-sm bg-bg-card rounded-t-[2.5rem] sm:rounded-[3rem] p-6 sm:p-8 shadow-2xl space-y-4 sm:space-y-6 border-x-0 sm:border-x-4 border-t-4 border-primary relative overflow-hidden max-h-[92vh] sm:max-h-none overflow-y-auto scrollbar-hide"
       >
         <div className="dominican-accent absolute top-0 left-0 w-full h-2 flex">
            <div className="flex-1 bg-primary" />
@@ -497,18 +498,21 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
         </div>
 
         <div className="flex justify-between items-center pt-2">
-          <h3 className="text-2xl font-display font-black uppercase tracking-tighter">{isEditing ? 'Editar' : 'Anotar'} Jugada</h3>
+          <h3 className="text-xl sm:text-2xl font-display font-black uppercase tracking-tighter">{isEditing ? 'Editar' : 'Anotar'} Jugada</h3>
           <button onClick={onClose} className="p-2 hover:bg-text-main/5 text-text-dim hover:text-red-500 rounded-full transition-all"><X /></button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pb-4">
           <div className="flex bg-bg-main p-1.5 rounded-2xl border-2 border-border-theme">
             {match.teams.map((t: any, idx: number) => (
               <button
                 key={t.id}
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setTeamIndex(idx)}
+                onClick={() => {
+                  triggerHaptic(10);
+                  setTeamIndex(idx);
+                }}
                 className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${teamIndex === idx ? 'bg-primary text-white shadow-lg' : 'text-text-dim/40'}`}
               >
                 {t.name.split(' ')[0]}
@@ -519,11 +523,12 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
           <div className="space-y-2 relative">
             <input 
               type="number"
+              inputMode="numeric"
               placeholder="00"
               value={points}
               autoFocus
-              onChange={(e) => setPoints(e.target.value)}
-              className="w-full text-center text-6xl font-display font-black bg-bg-main p-8 rounded-[2rem] border-b-8 border-primary focus:border-secondary transition-all outline-none text-primary placeholder:opacity-10"
+              onChange={(e) => setPoints(e.target.value.slice(0, 3))}
+              className="w-full text-center text-5xl sm:text-6xl font-display font-black bg-bg-main p-6 sm:p-8 rounded-[2rem] border-b-8 border-primary focus:border-secondary transition-all outline-none text-primary placeholder:opacity-10"
             />
             <span className="absolute bottom-2 right-6 text-[10px] font-black text-secondary">PTS</span>
           </div>
@@ -534,19 +539,32 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onDelete, roundToEdit, i
                 key={t}
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setPlayType(t)}
-                className={`py-4 rounded-xl border-2 text-[9px] font-black uppercase tracking-widest transition-all ${playType === t ? 'border-secondary bg-secondary text-white' : 'border-border-theme bg-bg-main text-text-dim'}`}
+                onClick={() => {
+                  triggerHaptic(10);
+                  setPlayType(t);
+                }}
+                className={`py-3 sm:py-4 rounded-xl border-2 text-[9px] font-black uppercase tracking-widest transition-all ${playType === t ? 'border-secondary bg-secondary text-white' : 'border-border-theme bg-bg-main text-text-dim'}`}
               >
                 {t}
               </button>
             ))}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             {isEditing && (
-              <button type="button" onClick={() => onDelete(roundToEdit.id)} className="flex-1 bg-bg-card border-2 border-red-100 text-red-500 p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest">Borrar</button>
+              <button 
+                type="button" 
+                onClick={() => onToggleDelete(roundToEdit.id)} 
+                className={`flex-1 border-2 p-4 sm:p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${
+                  isDeleted 
+                    ? 'border-green-100 bg-green-50 text-green-600 hover:bg-green-100' 
+                    : 'bg-bg-card border-red-100 text-red-500 hover:bg-red-50'
+                }`}
+              >
+                {isDeleted ? 'Restaurar' : 'Borrar'}
+              </button>
             )}
-            <button type="submit" className="flex-[2] bg-primary text-white p-5 rounded-2xl font-display font-black uppercase text-xl italic tracking-tighter shadow-xl shadow-primary/20 active:scale-95 transition-all">
+            <button type="submit" className="flex-[2] bg-primary text-white p-4 sm:p-5 rounded-2xl font-display font-black uppercase text-lg sm:text-xl italic tracking-tighter shadow-xl shadow-primary/20 active:scale-95 transition-all">
               {isEditing ? 'Actualizar' : '¡ANÓTALO!'}
             </button>
           </div>

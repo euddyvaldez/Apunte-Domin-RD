@@ -1,5 +1,5 @@
-import React, { useState, useEffect, ReactNode } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useEffect, ReactNode, ReactElement } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   History, 
   PlusCircle, 
@@ -236,7 +236,7 @@ export default function App() {
   );
 }
 
-function NavButton({ active, onClick, icon, label, id }: { active: boolean, onClick: () => void, icon: React.ReactElement, label: string, id: string }) {
+function NavButton({ active, onClick, icon, label, id }: { active: boolean, onClick: () => void, icon: ReactElement, label: string, id: string }) {
   return (
     <button 
       id={id}

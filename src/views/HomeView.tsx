@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Play, Plus, Dices, History, Zap } from 'lucide-react';
 
 export default function HomeView({ navigate, store }: any) {

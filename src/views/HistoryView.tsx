@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Trophy, Calendar, Trash2, ArrowRight } from 'lucide-react';
 
 export default function HistoryView({ navigate, store }: any) {

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { generateUUID } from '../store';
 import { Users, Target, Target as TargetIcon, ChevronRight, Zap, Dices } from 'lucide-react';
 

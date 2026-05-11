@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Match, Team, Player, Round, PlayType, ThemeType } from './types';
 
 const STORAGE_KEY = 'domino_rd_app_data';
@@ -277,7 +277,7 @@ export function useStore() {
     });
   };
 
-  const deleteRound = (matchId: string, roundId: string) => {
+  const toggleRoundDelete = (matchId: string, roundId: string) => {
     setData(prev => {
       const matchIndex = prev.matches.findIndex(m => m.id === matchId);
       if (matchIndex === -1) return prev;
@@ -289,7 +289,7 @@ export function useStore() {
       const updatedRounds = [...match.rounds];
       updatedRounds[roundIndex] = { 
         ...updatedRounds[roundIndex], 
-        isDeleted: true 
+        isDeleted: !updatedRounds[roundIndex].isDeleted 
       };
 
       const updatedMatch = recalculateMatch({
@@ -425,7 +425,7 @@ export function useStore() {
     startNewMatch,
     addRound,
     updateRound,
-    deleteRound,
+    toggleRoundDelete,
     deleteMatch,
     updateMatchLimit,
     updateTeamName,
