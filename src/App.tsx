@@ -15,6 +15,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { ThemeType } from './types';
+import { generateUUID } from './store';
 import { useAppStore } from './context/StoreContext';
 import HomeView from './views/HomeView';
 import SetupView from './views/SetupView';
@@ -23,16 +24,30 @@ import HistoryView from './views/HistoryView';
 
 export default function App() {
   const store = useAppStore();
-  const [view, setView] = useState<'home' | 'setup' | 'game' | 'history'>('home');
+  const [view, setView] = useState<'home' | 'setup' | 'game' | 'history'>('game');
   const [showContact, setShowContact] = useState(false);
-  const [hasCheckedResume, setHasCheckedResume] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    if (store.currentMatch && !hasCheckedResume) {
-      setView('game');
+    if (!hasInitialized && store) {
+      if (store.currentMatch) {
+        setView('game');
+      } else if (store.matches.length > 0) {
+        // If there's no current match id but there are matches, take the most recent one
+        store.setCurrentMatch(store.matches[0].id);
+        setView('game');
+      } else {
+        // No matches at all, start a fresh one "Frente"
+        const teams = [
+          { id: generateUUID(), name: 'Equipo A' },
+          { id: generateUUID(), name: 'Equipo B' }
+        ];
+        store.startNewMatch(teams, 200, 30, 30, 30);
+        setView('game');
+      }
+      setHasInitialized(true);
     }
-    setHasCheckedResume(true);
-  }, [store.currentMatch, hasCheckedResume]);
+  }, [store, hasInitialized]);
 
   useEffect(() => {
     if (store.isDarkMode) {

@@ -132,6 +132,10 @@
   }
 }
 
+html, body {
+  overscroll-behavior-y: none;
+}
+
 body {
   background-color: var(--bg-page);
   color: var(--text-main);

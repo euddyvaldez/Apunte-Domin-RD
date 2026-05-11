@@ -95,6 +95,7 @@ export default function GameView({ navigate, store }: any) {
 
   const gridColsClass = match.teams.length === 4 ? 'grid-cols-4' : 
                         match.teams.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
+  const gridGapClass = match.teams.length === 4 ? 'gap-1.5' : 'gap-3';
 
   return (
     <div className="flex flex-col h-full bg-bg-page select-none overflow-x-hidden pb-16">
@@ -106,7 +107,7 @@ export default function GameView({ navigate, store }: any) {
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-dim/60">En Mesa</span>
            </div>
            
-           {isEditingMeta ? (
+              {isEditingMeta ? (
             <div className="flex items-center gap-2">
               <input 
                 type="number"
@@ -118,7 +119,7 @@ export default function GameView({ navigate, store }: any) {
                   if (!isNaN(val) && val > 0) store.updateMatchLimit(match.id, val);
                   setIsEditingMeta(false);
                 }}
-                className="w-20 text-xs font-black text-center bg-white border-2 border-primary rounded-xl py-1 outline-none shadow-lg"
+                className="w-20 text-xs font-black text-center bg-bg-card text-text-main border-2 border-primary rounded-xl py-1 outline-none shadow-lg"
               />
             </div>
           ) : (
@@ -135,7 +136,7 @@ export default function GameView({ navigate, store }: any) {
           )}
         </div>
 
-        <div className={`grid ${gridColsClass} gap-3`}>
+        <div className={`grid ${gridColsClass} ${gridGapClass}`}>
           {match.teams.map((team: any, idx: number) => (
             <div key={team.id} className="flex flex-col gap-2 min-w-0">
               <ScoreCard 
@@ -148,6 +149,7 @@ export default function GameView({ navigate, store }: any) {
                 winner={match.winnerTeamId === team.id}
                 isFinished={isFinished}
                 wins={match.setWins?.[idx] || 0}
+                teamCount={match.teams.length}
                 onAdd={() => {
                   setInitialTeamForModal(idx);
                   setShowAddPoints(true);
@@ -162,7 +164,7 @@ export default function GameView({ navigate, store }: any) {
                       onChange={(e) => setEditingName(e.target.value)}
                       onBlur={saveTeamName}
                       onKeyDown={(e) => e.key === 'Enter' && saveTeamName()}
-                      className="text-[10px] font-black uppercase bg-white border-2 border-primary outline-none rounded-lg px-2 w-full text-center py-1 shadow-sm"
+                      className="text-[10px] font-black uppercase bg-bg-card text-text-main border-2 border-primary outline-none rounded-lg px-2 w-full text-center py-1 shadow-sm"
                     />
                   ) : (
                     <button 
@@ -178,6 +180,7 @@ export default function GameView({ navigate, store }: any) {
                 <QuickActions 
                   match={match} 
                   teamIdx={idx}
+                  teamCount={match.teams.length}
                   onQuickAdd={(type: any, pts: number) => {
                     store.addRound(match.id, {
                       playType: type,
@@ -396,18 +399,30 @@ export default function GameView({ navigate, store }: any) {
   );
 }
 
-function ScoreCard({ score, limit, primary, secondary, accent, winner, onAdd, isFinished, wins }: any) {
+function ScoreCard({ score, limit, primary, secondary, accent, winner, onAdd, isFinished, wins, teamCount }: any) {
   const percent = Math.min((score / limit) * 100, 100);
   const colorClass = primary ? 'border-primary/30 shadow-primary/10' : 
                      secondary ? 'border-secondary/30 shadow-secondary/10' : 
                      accent ? 'border-accent/30 shadow-accent/10' : 'border-purple-300 shadow-purple-500/10';
+
+  const fontSizeClass = teamCount >= 4 ? 'text-3xl sm:text-4xl' : 
+                        teamCount === 3 ? 'text-4xl sm:text-5xl' : 
+                        'text-5xl sm:text-6xl';
+  
+  const cardPadding = teamCount >= 4 ? 'py-4 sm:py-6 px-1' : 
+                      teamCount === 3 ? 'py-6 sm:py-7 px-2' : 
+                      'py-8 sm:py-10 px-3';
+  
+  const cardRadius = teamCount >= 4 ? 'rounded-2xl border-b-4' : 
+                     teamCount === 3 ? 'rounded-3xl border-b-6' : 
+                     'rounded-[2rem] border-b-8';
 
   return (
     <motion.button
       whileTap={!isFinished ? { scale: 0.95 } : {}}
       onClick={onAdd}
       disabled={isFinished}
-      className={`relative w-full py-8 px-3 rounded-[2rem] border-b-8 flex flex-col items-center gap-1 transition-all bg-bg-card shadow-2xl ${colorClass} ${isFinished ? 'opacity-80' : 'active:border-b-0 active:translate-y-1'}`}
+      className={`relative w-full ${cardPadding} ${cardRadius} flex flex-col items-center gap-1 transition-all bg-bg-card shadow-2xl ${colorClass} ${isFinished ? 'opacity-80' : 'active:border-b-0 active:translate-y-1'}`}
     >
       {/* Wins Badge */}
       {wins > 0 && (
@@ -428,7 +443,7 @@ function ScoreCard({ score, limit, primary, secondary, accent, winner, onAdd, is
       </div>
       
       <div className="flex flex-col items-center relative z-20 mt-2">
-        <span className={`text-5xl font-display font-black tabular-nums tracking-tighter ${winner ? 'text-secondary animate-bounce' : 'text-primary'}`}>
+        <span className={`${fontSizeClass} font-display font-black tabular-nums tracking-tighter ${winner ? 'text-secondary animate-bounce' : 'text-primary'}`}>
           {score}
         </span>
       </div>
@@ -438,15 +453,19 @@ function ScoreCard({ score, limit, primary, secondary, accent, winner, onAdd, is
   );
 }
 
-function QuickActions({ match, teamIdx, onQuickAdd }: any) {
+function QuickActions({ match, teamIdx, onQuickAdd, teamCount }: any) {
   const actions = [
     { type: 'Capicúa' as PlayType, label: 'CAPICÚA', pts: match.capicuaPoints },
     { type: 'Pase Corrido' as PlayType, label: 'CORRIDO', pts: match.pasoCorridoPoints },
     { type: 'Paso de salida' as PlayType, label: 'SALIDA', pts: match.pasoSalidaPoints },
   ];
 
+  const buttonPadding = teamCount >= 4 ? 'py-1.5' : teamCount === 3 ? 'py-2' : 'py-3';
+  const fontSizeAttr = teamCount >= 4 ? 'text-[6px]' : teamCount === 3 ? 'text-[7.5px]' : 'text-[9px]';
+  const pxAttr = teamCount >= 4 ? 'px-1.5' : 'px-3';
+
   return (
-    <div className="flex flex-col gap-1.5 mt-2">
+    <div className="flex flex-col gap-1 mt-2">
       {actions.map(action => (
         <button
           key={action.type}
@@ -454,10 +473,10 @@ function QuickActions({ match, teamIdx, onQuickAdd }: any) {
             triggerHaptic(15);
             onQuickAdd(action.type, action.pts);
           }}
-          className="w-full py-2 bg-bg-main border border-border-theme rounded-xl text-[7px] font-black uppercase tracking-widest hover:border-primary/40 hover:bg-bg-card active:scale-95 transition-all text-text-dim flex items-center justify-between px-3"
+          className={`w-full ${buttonPadding} bg-bg-main border border-border-theme rounded-lg sm:rounded-xl ${fontSizeAttr} font-black uppercase tracking-tight sm:tracking-widest hover:border-primary/40 hover:bg-bg-card active:scale-95 transition-all text-text-dim flex items-center justify-between ${pxAttr}`}
         >
-          <span>{action.label}</span>
-          <span className="text-secondary">+{action.pts}</span>
+          <span className="truncate mr-1">{action.label}</span>
+          <span className="text-secondary flex-shrink-0">+{action.pts}</span>
         </button>
       ))}
     </div>
@@ -485,12 +504,12 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onToggleDelete, roundToE
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+    <div className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
       <motion.div 
-        initial={{ y: '100%' }}
+        initial={{ y: '-100%' }}
         animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        className="w-full max-w-md sm:max-w-sm bg-bg-card rounded-t-[2.5rem] sm:rounded-[3rem] p-4 sm:p-8 shadow-2xl space-y-3 sm:space-y-6 border-x-0 sm:border-x-4 border-t-4 border-primary relative overflow-hidden max-h-[95vh] sm:max-h-none overflow-y-auto scrollbar-hide"
+        exit={{ y: '-100%' }}
+        className="w-full max-w-md sm:max-w-sm bg-bg-card rounded-b-[2.5rem] sm:rounded-[3rem] p-4 sm:p-8 shadow-2xl space-y-3 sm:space-y-6 border-x-0 sm:border-x-4 border-b-4 sm:border-b-0 border-t-0 sm:border-t-4 border-primary relative overflow-hidden max-h-[95vh] sm:max-h-none overflow-y-auto scrollbar-hide"
       >
         <div className="dominican-accent absolute top-0 left-0 w-full h-2 flex">
            <div className="flex-1 bg-primary" />
@@ -671,7 +690,7 @@ function HistorySheet({ match, onClose, onEdit, onNewMatch, onReplay }: any) {
 
 function RoundEntry({ round, match, onEdit, isHistory, historyTeamNames }: any) {
   const teamName = historyTeamNames 
-    ? historyTeamNames[round.winningTeamIndex] 
+    ? (historyTeamNames[round.winningTeamIndex] || 'Equipo')
     : (match.teams[round.winningTeamIndex]?.name || 'Equipo');
 
   return (
@@ -690,7 +709,7 @@ function RoundEntry({ round, match, onEdit, isHistory, historyTeamNames }: any) 
           round.winningTeamIndex === 1 ? 'bg-secondary text-white shadow-secondary/20' : 
           round.winningTeamIndex === 2 ? 'bg-accent text-white shadow-accent/20' : 'bg-purple-500 text-white shadow-purple-500/20'
         }`}>
-          {teamName.charAt(0).toUpperCase()}
+          {teamName?.charAt(0).toUpperCase() || '?'}
         </div>
         <div>
           <span className="block text-[8px] font-black uppercase text-text-dim/60 tracking-[0.2em]">{teamName}</span>
@@ -749,7 +768,7 @@ function WinnerModal({ match, onClose, onNewMatch, onReplay }: any) {
            </button>
            <div className="grid grid-cols-2 gap-3">
              <button onClick={onNewMatch} className="bg-bg-main border-2 border-border-theme p-4 rounded-2xl font-black text-[10px] uppercase text-text-dim hover:bg-primary hover:text-white transition-all">Nueva Mesa</button>
-             <button onClick={onClose} className="bg-bg-main border-2 border-border-theme p-4 rounded-2xl font-black text-[10px] uppercase text-text-dim hover:bg-primary hover:text-white transition-all">Bitácora</button>
+             <button onClick={onClose} className="bg-bg-main border-2 border-border-theme p-4 rounded-2xl font-black text-[10px] uppercase text-text-dim hover:bg-primary hover:text-white transition-all">Revisar Partida</button>
            </div>
         </div>
       </motion.div>
