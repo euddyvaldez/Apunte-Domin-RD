@@ -490,7 +490,7 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onToggleDelete, roundToE
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
-        className="w-full max-w-md sm:max-w-sm bg-bg-card rounded-t-[2.5rem] sm:rounded-[3rem] p-6 sm:p-8 shadow-2xl space-y-4 sm:space-y-6 border-x-0 sm:border-x-4 border-t-4 border-primary relative overflow-hidden max-h-[92vh] sm:max-h-none overflow-y-auto scrollbar-hide"
+        className="w-full max-w-md sm:max-w-sm bg-bg-card rounded-t-[2.5rem] sm:rounded-[3rem] p-4 sm:p-8 shadow-2xl space-y-3 sm:space-y-6 border-x-0 sm:border-x-4 border-t-4 border-primary relative overflow-hidden max-h-[95vh] sm:max-h-none overflow-y-auto scrollbar-hide"
       >
         <div className="dominican-accent absolute top-0 left-0 w-full h-2 flex">
            <div className="flex-1 bg-primary" />
@@ -513,7 +513,7 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onToggleDelete, roundToE
                   triggerHaptic(10);
                   setTeamIndex(idx);
                 }}
-                className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${teamIndex === idx ? 'bg-primary text-white shadow-lg' : 'text-text-dim/40'}`}
+                className={`flex-1 py-2 text-[9px] font-black uppercase rounded-xl transition-all ${teamIndex === idx ? 'bg-primary text-white shadow-lg' : 'text-text-dim/40'}`}
               >
                 {t.name.split(' ')[0]}
               </button>
@@ -528,7 +528,7 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onToggleDelete, roundToE
               value={points}
               autoFocus
               onChange={(e) => setPoints(e.target.value.slice(0, 3))}
-              className="w-full text-center text-5xl sm:text-6xl font-display font-black bg-bg-main p-6 sm:p-8 rounded-[2rem] border-b-8 border-primary focus:border-secondary transition-all outline-none text-primary placeholder:opacity-10"
+              className="w-full text-center text-3xl sm:text-5xl font-display font-black bg-bg-main p-3 sm:p-6 rounded-[1.25rem] border-b-2 sm:border-b-8 border-primary focus:border-secondary transition-all outline-none text-primary placeholder:opacity-10"
             />
             <span className="absolute bottom-2 right-6 text-[10px] font-black text-secondary">PTS</span>
           </div>
@@ -543,7 +543,7 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onToggleDelete, roundToE
                   triggerHaptic(10);
                   setPlayType(t);
                 }}
-                className={`py-3 sm:py-4 rounded-xl border-2 text-[9px] font-black uppercase tracking-widest transition-all ${playType === t ? 'border-secondary bg-secondary text-white' : 'border-border-theme bg-bg-main text-text-dim'}`}
+                className={`py-2 rounded-xl border-2 text-[8px] font-black uppercase tracking-widest transition-all ${playType === t ? 'border-secondary bg-secondary text-white' : 'border-border-theme bg-bg-main text-text-dim'}`}
               >
                 {t}
               </button>
@@ -555,7 +555,7 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onToggleDelete, roundToE
               <button 
                 type="button" 
                 onClick={() => onToggleDelete(roundToEdit.id)} 
-                className={`flex-1 border-2 p-4 sm:p-5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all ${
+                className={`flex-1 border-2 p-3 sm:p-5 rounded-2xl font-black uppercase text-[9px] tracking-widest transition-all ${
                   isDeleted 
                     ? 'border-green-100 bg-green-50 text-green-600 hover:bg-green-100' 
                     : 'bg-bg-card border-red-100 text-red-500 hover:bg-red-50'
@@ -564,7 +564,7 @@ function PointsModal({ onClose, match, onAdd, onUpdate, onToggleDelete, roundToE
                 {isDeleted ? 'Restaurar' : 'Borrar'}
               </button>
             )}
-            <button type="submit" className="flex-[2] bg-primary text-white p-4 sm:p-5 rounded-2xl font-display font-black uppercase text-lg sm:text-xl italic tracking-tighter shadow-xl shadow-primary/20 active:scale-95 transition-all">
+            <button type="submit" className="flex-[2] bg-primary text-white p-3 sm:p-5 rounded-2xl font-display font-black uppercase text-base sm:text-xl italic tracking-tighter shadow-xl shadow-primary/20 active:scale-95 transition-all">
               {isEditing ? 'Actualizar' : '¡ANÓTALO!'}
             </button>
           </div>
