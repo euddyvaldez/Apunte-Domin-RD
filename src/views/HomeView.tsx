@@ -69,28 +69,16 @@ export default function HomeView({ navigate, store }: any) {
           </div>
         </button>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button 
-            id="history-btn"
-            onClick={() => navigate('history')}
-            className="card-premium flex flex-col items-center gap-2 text-center group"
-          >
-            <div className="w-12 h-12 bg-primary/5 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-              <History className="w-6 h-6" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-dim">Historial</span>
-          </button>
-
-          <button 
-            onClick={() => window.open('https://ais-dev-l3dac2ls5evpj6bfb7thz6-401655172120.us-west2.run.app', '_blank')}
-            className="card-premium flex flex-col items-center gap-2 text-center group border-dashed border-secondary/20"
-          >
-            <div className="w-12 h-12 bg-secondary/5 rounded-2xl flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-white transition-all duration-300">
-              <Zap className="w-6 h-6" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-text-dim">Dominó RD</span>
-          </button>
-        </div>
+        <button 
+          id="history-btn"
+          onClick={() => navigate('history')}
+          className="card-premium flex items-center gap-6 px-10 group"
+        >
+          <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
+            <History className="w-8 h-8" />
+          </div>
+          <span className="text-sm font-black uppercase tracking-widest text-text-dim text-left">Ver Historial de Partidas</span>
+        </button>
       </div>
 
       {/* Recents Section */}
