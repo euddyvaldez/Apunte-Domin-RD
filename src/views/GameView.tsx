@@ -30,12 +30,11 @@ const PLAY_ABBR: Record<string, string> = {
   'Otro': 'OTR'
 };
 
-export default function GameView({ navigate, store }: any) {
+export default function GameView({ navigate, store, showOptions, setShowOptions }: any) {
   const match = store.currentMatch;
   const [showAddPoints, setShowAddPoints] = useState(false);
   const [roundToEdit, setRoundToEdit] = useState<any>(null);
   const [initialTeamForModal, setInitialTeamForModal] = useState<number>(0);
-  const [showOptions, setShowOptions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [isEditingMeta, setIsEditingMeta] = useState(false);
   const [tempMeta, setTempMeta] = useState(match?.scoreLimit.toString() || '100');
@@ -100,40 +99,66 @@ export default function GameView({ navigate, store }: any) {
   return (
     <div className="flex flex-col h-full bg-bg-page select-none overflow-x-hidden pb-16">
       {/* Scoreboard */}
-      <div className="p-4 pb-2 space-y-4 sticky top-0 bg-bg-page/90 backdrop-blur-xl z-40 border-b-2 border-border-theme">
-        <div className="flex justify-between items-center bg-bg-main p-2 rounded-2xl border border-border-theme/50 shadow-inner">
-           <div className="flex items-center gap-2 pl-2">
-              <div className="w-2 h-2 bg-secondary rounded-full animate-pulse" />
+      <div className="p-4 pb-2 space-y-3 sticky top-0 bg-bg-page/90 backdrop-blur-xl z-40 border-b-2 border-border-theme">
+        {/* Modality Selection Row */}
+        {!isFinished && (
+          <div className="flex justify-center -mb-1">
+             <div className="inline-flex bg-bg-main/50 p-1 rounded-2xl border border-border-theme/40 shadow-inner">
+                {[2, 3, 4].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => {
+                      triggerHaptic(10);
+                      store.updateMatchMode(match.id, num);
+                    }}
+                    className={`px-5 py-2 rounded-xl text-[9px] font-black uppercase transition-all duration-300 whitespace-nowrap ${
+                      match.teams.length === num 
+                        ? 'bg-primary text-white shadow-[0_4px_12px_rgba(37,99,235,0.3)] transform scale-105 z-10' 
+                        : 'text-text-dim/40 hover:text-primary'
+                    }`}
+                  >
+                    {num === 2 ? 'Frente' : num === 3 ? '3 Jug.' : 'To pa to'}
+                  </button>
+                ))}
+             </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center bg-bg-main p-1.5 rounded-2xl border border-border-theme/50 shadow-inner">
+           <div className="flex items-center gap-2 pl-3">
+              <div className="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse" />
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-text-dim/60">En Mesa</span>
            </div>
            
+           <div className="flex items-center gap-2">
               {isEditingMeta ? (
-            <div className="flex items-center gap-2">
-              <input 
-                type="number"
-                value={tempMeta}
-                autoFocus
-                onChange={(e) => setTempMeta(e.target.value)}
-                onBlur={() => {
-                  const val = parseInt(tempMeta);
-                  if (!isNaN(val) && val > 0) store.updateMatchLimit(match.id, val);
-                  setIsEditingMeta(false);
-                }}
-                className="w-20 text-xs font-black text-center bg-bg-card text-text-main border-2 border-primary rounded-xl py-1 outline-none shadow-lg"
-              />
-            </div>
-          ) : (
-            <button 
-              onClick={() => {
-                setTempMeta(match.scoreLimit.toString());
-                setIsEditingMeta(true);
-              }}
-              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border-b-4 border-primary bg-primary text-white shadow-lg active:border-b-0 active:translate-y-0.5 transition-all"
-            >
-              <Target className="w-3 h-3" />
-              <span>{match.scoreLimit} PTS</span>
-            </button>
-          )}
+                <div className="flex items-center">
+                  <input 
+                    type="number"
+                    value={tempMeta}
+                    autoFocus
+                    onChange={(e) => setTempMeta(e.target.value)}
+                    onBlur={() => {
+                      const val = parseInt(tempMeta);
+                      if (!isNaN(val) && val > 0) store.updateMatchLimit(match.id, val);
+                      setIsEditingMeta(false);
+                    }}
+                    className="w-16 text-xs font-black text-center bg-bg-card text-text-main border-2 border-primary rounded-xl py-1.5 outline-none shadow-lg"
+                  />
+                </div>
+              ) : (
+                <button 
+                  onClick={() => {
+                    setTempMeta(match.scoreLimit.toString());
+                    setIsEditingMeta(true);
+                  }}
+                  className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl border-b-4 border-primary bg-primary text-white shadow-lg active:border-b-0 active:translate-y-0.5 transition-all"
+                >
+                  <Target className="w-3 h-3" />
+                  <span>{match.scoreLimit} PTS</span>
+                </button>
+              )}
+           </div>
         </div>
 
         <div className={`grid ${gridColsClass} ${gridGapClass}`}>
@@ -195,9 +220,9 @@ export default function GameView({ navigate, store }: any) {
         </div>
       </div>
 
-      {/* Options Header / Finished Controls */}
-      <div className="px-4 py-2 flex items-center justify-between min-h-[48px]">
-        {isFinished ? (
+      {/* Finished Controls */}
+      {isFinished && (
+        <div className="px-4 py-2 flex items-center justify-between min-h-[48px]">
           <div className="flex items-center gap-2 w-full">
             <button 
               onClick={handleReplay}
@@ -217,95 +242,86 @@ export default function GameView({ navigate, store }: any) {
               <Plus className="w-3.5 h-3.5" /> Nueva Partida
             </button>
           </div>
-        ) : (
-          <div className="flex-1 flex justify-end">
-            <button 
-              onClick={() => setShowOptions(!showOptions)}
-              className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-text-dim"
-              id="options-trigger"
-            >
-              <MoreHorizontal className="w-4 h-4" />
-              Opciones
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Options Modal Helper */}
       <AnimatePresence>
         {showOptions && !isFinished && (
-          <>
+          <div className="fixed inset-x-0 top-20 z-50 px-4">
             {/* Overlay to handle click outside */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowOptions(false)}
-              className="fixed inset-0 z-40 bg-black/5"
+              className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[2px]"
             />
             <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mx-4 mb-4 p-2 bg-bg-card border border-border-theme rounded-xl shadow-xl z-50 flex flex-col gap-1 relative"
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              className="p-2 bg-bg-card border border-border-theme rounded-2xl shadow-2xl z-50 flex flex-col gap-1 relative overflow-hidden"
             >
-            {/* Modalidad Control */}
-            <div className="p-2 space-y-2 mb-1">
-              <span className="text-[9px] font-black uppercase text-text-dim/40 tracking-widest pl-1">Modalidad de Partida</span>
-              <div className="flex bg-primary/5 p-1 rounded-lg gap-1 border border-border-theme/30">
-                {[2, 3, 4].map(num => (
-                  <button
-                    key={num}
-                    onClick={() => {
-                      triggerHaptic(10);
-                      store.updateMatchMode(match.id, num);
-                    }}
-                    className={`flex-1 py-2 rounded-md text-[9px] font-black uppercase transition-all ${
-                      match.teams.length === num 
-                        ? 'bg-primary text-white shadow-sm' 
-                        : 'text-text-dim hover:bg-primary/5'
-                    }`}
-                  >
-                    {num === 2 ? 'Frente' : num === 3 ? '3 Jug.' : 'To pa to'}
-                  </button>
-                ))}
+              <div className="dominican-accent absolute top-0 left-0 w-full h-1 flex opacity-50">
+                 <div className="flex-1 bg-primary" />
+                 <div className="flex-1 bg-secondary" />
               </div>
-            </div>
 
-            <div className="h-px bg-border-theme/20 mx-2 mb-1" />
+              {/* Modalidad Control */}
+              <div className="p-3 mb-1 mt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-text-dim/60 tracking-widest pl-1">Menú de Partida</span>
+                  <button onClick={() => setShowOptions(false)} className="p-1 hover:bg-red-50 rounded-md text-red-500 transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
 
-            <button 
-              onClick={() => navigate('home')}
-              className="flex items-center gap-3 p-3 hover:bg-primary/5 rounded-lg text-sm font-bold text-primary"
-            >
-              <LogOut className="w-4 h-4" /> Salir a Inicio
-            </button>
-            <button 
-              onClick={() => {
-                if(confirm('¿Reiniciar partida?')) {
-                   // Restart logic missing in snippets, assuming navigate('setup') or logic in store
-                   navigate('setup');
-                }
-              }}
-              className="flex items-center gap-3 p-3 hover:bg-secondary/5 rounded-lg text-sm font-bold text-text-dim"
-            >
-              <RotateCcw className="w-4 h-4" /> Reiniciar Juego
-            </button>
-            <button 
-              onClick={() => {
-                if(confirm('¿Borrar partida?')) {
-                  store.deleteMatch(match.id);
-                  navigate('home');
-                }
-              }}
-              className="flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg text-sm font-bold text-red-500"
-            >
-              <Flag className="w-4 h-4" /> Abandonar Partida
-            </button>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+              <div className="h-px bg-border-theme/20 mx-3 mb-1" />
+
+              <div className="grid grid-cols-1 gap-1 p-1">
+                <button 
+                  onClick={() => navigate('home')}
+                  className="flex items-center gap-3 p-3.5 hover:bg-primary/5 rounded-xl text-sm font-bold text-primary transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                    <LogOut className="w-4 h-4" />
+                  </div>
+                  Salir a Inicio
+                </button>
+                <button 
+                  onClick={() => {
+                    if(confirm('¿Reiniciar partida?')) {
+                       navigate('setup');
+                    }
+                  }}
+                  className="flex items-center gap-3 p-3.5 hover:bg-secondary/5 rounded-xl text-sm font-bold text-text-dim transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center group-hover:bg-secondary group-hover:text-white transition-all">
+                    <RotateCcw className="w-4 h-4" />
+                  </div>
+                  Reiniciar Juego
+                </button>
+                <button 
+                  onClick={() => {
+                    if(confirm('¿Borrar partida?')) {
+                      store.deleteMatch(match.id);
+                      navigate('home');
+                    }
+                  }}
+                  className="flex items-center gap-3 p-3.5 hover:bg-red-50 rounded-xl text-sm font-bold text-red-500 transition-colors group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all">
+                    <Flag className="w-4 h-4" />
+                  </div>
+                  Abandonar Partida
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* History Grid on Front Page */}
       <div className="flex-1 p-3 overflow-y-auto scrollbar-hide">

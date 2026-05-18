@@ -12,11 +12,13 @@ import {
   Mail,
   User as UserIcon,
   X,
-  MessageCircle
+  MessageCircle,
+  MoreHorizontal
 } from 'lucide-react';
 import { ThemeType } from './types';
 import { generateUUID } from './store';
 import { useAppStore } from './context/StoreContext';
+import { triggerHaptic } from './lib/haptics';
 import HomeView from './views/HomeView';
 import SetupView from './views/SetupView';
 import GameView from './views/GameView';
@@ -26,6 +28,7 @@ export default function App() {
   const store = useAppStore();
   const [view, setView] = useState<'home' | 'setup' | 'game' | 'history'>('game');
   const [showContact, setShowContact] = useState(false);
+  const [showGameOptions, setShowGameOptions] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
@@ -48,6 +51,12 @@ export default function App() {
       setHasInitialized(true);
     }
   }, [store, hasInitialized]);
+
+  useEffect(() => {
+    if (view !== 'game') {
+      setShowGameOptions(false);
+    }
+  }, [view]);
 
   useEffect(() => {
     if (store.isDarkMode) {
@@ -86,6 +95,8 @@ export default function App() {
     return <div className="flex items-center justify-center h-screen bg-bg-page text-text-main">Cargando aplicación...</div>;
   }
 
+  const isFinished = store.currentMatch?.status === 'finished';
+
   return (
     <div className={`min-h-screen transition-all duration-500 theme-${store.theme || 'minimalist'}`}>
       <div className="max-w-md mx-auto min-h-screen flex flex-col bg-bg-page shadow-xl overflow-hidden relative border-x border-border-theme">
@@ -115,6 +126,19 @@ export default function App() {
             </div>
             
             <div className="flex items-center gap-2">
+              {view === 'game' && store.currentMatch && !isFinished && (
+                <button 
+                  onClick={() => {
+                    triggerHaptic(10);
+                    setShowGameOptions(!showGameOptions);
+                  }}
+                  className={`p-2 rounded-xl transition-all ${showGameOptions ? 'bg-secondary text-white shadow-lg' : 'bg-text-main/5 text-text-dim hover:bg-secondary/10 hover:text-secondary'}`}
+                  title="Opciones de partida"
+                  id="options-trigger-header"
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+              )}
               <button 
                 onClick={() => store.toggleDarkMode()}
                 className="p-2 bg-text-main/5 text-text-dim rounded-xl hover:bg-primary/10 hover:text-primary transition-all active:scale-90"
@@ -160,7 +184,7 @@ export default function App() {
             >
               {view === 'home' && <HomeView navigate={navigate} store={store} />}
               {view === 'setup' && <SetupView navigate={navigate} store={store} />}
-              {view === 'game' && <GameView navigate={navigate} store={store} />}
+              {view === 'game' && <GameView navigate={navigate} store={store} showOptions={showGameOptions} setShowOptions={setShowGameOptions} />}
               {view === 'history' && <HistoryView navigate={navigate} store={store} />}
             </motion.div>
           </AnimatePresence>
